@@ -1,32 +1,32 @@
 //Example Zone reference 
 //zone "example.com." IN {
 //	type master;
-//	file "Range/db.example.com";
+//	file "RANGE/db.example.com";
 //	allow-query { any; };
 //	allow-update { any; };
 //};
 // Default systems
 zone "pastebin.com." IN {
 	type master;
-	file "Range/db.pastebin.com";
+	file "RANGE/db.pastebin.com";
 	allow-query { any; };
 	allow-update { none; };
 };
 zone "dropbox.com." IN {
 	type master;
-	file "Range/db.dropbox.com";
+	file "RANGE/db.dropbox.com";
 	allow-query { any; };
 	allow-update { none; };
 };
 zone "redbook.com." IN {
 	type master;
-	file "Range/db.redbook.com";
+	file "RANGE/db.redbook.com";
 	allow-query { any; };
 	allow-update { none; };
 };
 zone "globalcert.com." IN {
 	type master;
-	file "Range/db.globalcert.com";
+	file "RANGE/db.globalcert.com";
 	allow-query { any; };
 	allow-update { none; };
 };
