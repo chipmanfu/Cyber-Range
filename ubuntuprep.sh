@@ -1,0 +1,230 @@
+#!/bin/bash
+clear
+
+Proxy="http://172.30.0.2:9999"
+
+# IA Proxy IP settings
+iapnic1="172.30.0.2/21"
+iapnic2="dhcp"
+# Root DNS IP Settings
+rootdnsnic1="dhcp"
+rootdnsnic2="8.8.8.8/24
+             198.41.0.4/24  
+             192.228.79.59/24 
+             192.33.4.12/24 
+             128.8.10.90/24 
+             192.203.230.10/24 
+             195.5.5.241/24 
+             192.112.36.4/24
+             128.63.2.53/24 
+             192.36.148.17/24 
+             192.58.128.30/24 
+             193.0.14.129/24 
+             199.7.83.42/24 
+             202.12.27.33/24"
+rootdnsgw="8.8.8.1"
+# CA server
+canic1="dhcp"
+canic2="180.1.1.100/24"
+cagw="180.1.1.1"
+# RTS
+rtsnic1="dhcp"
+rtsnic1="1.1.1.2/24"
+rtsgw="1.1.1.1"
+# Web Servers
+webnic1="dhcp"
+# Traffic Gen
+trafnic1="dhcp"
+# Web host
+webhostnic1="dhcp"
+
+# Color codes for menu
+white="\e[1;37m"
+ltblue="\e[1;36m"
+red="\e[1;31m"
+green="\e[1;32m"
+yellow="\e[1;32m"
+default="\e[0m"
+
+BuildMenu()
+{
+  clear
+  echo -e "\n$ltblue Ubuntu Grayspace build Script\n"
+  echo -e "\tWhich Server will this be?"
+  echo -e "\t$ltblue 1)$white IA Proxy"
+  echo -e "\t$ltblue 2)$white RootDNS"
+  echo -e "\t$ltblue 3)$white CA Server"
+  echo -e "\t$ltblue 4)$white NRTS"
+  echo -e "\t$ltblue 5)$white Web Services"
+  echo -e "\t$ltblue 6)$white Traffic Gen"
+  echo -e "\t$ltblue 7)$white Web Traffic Host"
+  echo -e "\t$ltblue q)$white Exit script"
+  echo -ne "\n\t$ltblue Enter a Selection: $default"
+  read answer
+  case $answer in 
+	  1) srv="IA Proxy"; opt=1; needdocker=n;;
+	  2) srv="RootDNS"; opt=2; needdocker=n;;
+	  3) srv="CA Server"; opt=3; needdocker=n;;
+	  4) srv="NRTS"; opt=4; needdocker=y;;
+	  5) srv="Web Services"; opt=5; needdocker=y;;
+	  6) srv="Traffic Gen"; opt=6; needdocker=y;;
+	  7) srv="Web Traffic Host"; opt=7; needdocker=y;;
+	  q|Q) exit;;
+	  *) echo -e "\n\t\t$red Invalid Selection, Please try again$default"; sleep 2; BuildMenu;;
+  esac
+  echo -ne "$yellow You selected to build $srv? is this correct?(y or n): $default"
+  read confirm
+  case $confirm in 
+	  y|Y|yes|YES|Yes) clear; echo -e "$green Beginning Configuration for $srv $default";;
+	  *) BuildMenu;;
+  esac
+}
+BuildMenu
+# get interface name
+anic=`ip link show | grep ^2: | awk {'print$2'} | cut -d: -f1`
+if [ -z "$anic" ]; then
+	echo -e "$red Error, the script couldn't determine your first nic $default"
+	exit 0
+fi
+gnic=`ip link show | grep ^3: | awk {'print$2'} | cut -d: -f1`
+if [ -z "$gnic" ]; then
+	echo -e  "$red Error, the script didn't detect your second nic, did you add one for this VM? $default"
+	exit 0
+fi
+servername=$srv
+if [[ $opt != 1 ]]; then
+	# Set up wget to use real internet proxy
+        if grep ^use_proxy /etc/wgetrc; then
+           sed -i '/^user_proxy/d' /etc wgetrc
+        fi
+        echo "use_proxy=yes" >> /etc/wgetrc	
+        if grep ^http_proxy /etc/wgetrc; then
+           sed -i '/^http_proxy/d' /etc/wgetrc
+        fi
+        echo "http_proxy=$Proxy" >> /etc/wgetrc
+        if grep ^https_proxy /etc/wgetrc; then
+          sed -i '/^https_proxy/d' /etc/wgetrc
+        fi
+        echo "https_proxy=$Proxy" >> /etc/wgetrc
+	# Set up Apt to use real internet proxy
+	echo "Acquire::http::Proxy \"$Proxy\";" > /etc/apt/apt.conf.d/proxy.conf
+	echo "Acquire::https::Proxy \"$Proxy\";" >> /etc/apt/apt.conf.d/proxy.conf
+fi
+
+echo -e "$green Changings some environment settings $default"
+sleep 2
+echo "colo industry" > /root/.vimrc
+echo 'LS_COLORS=$LSCOLORS:"di=96:"; export LS_COLORS' >> /root/.bashrc
+sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config
+mkdir /etc/update-motd.d/originals
+mv /etc/update-motd.d/* /etc/update-motd.d/originals 2</dev/null
+
+echo "#!/bin/bash" > /etc/update-motd.d/00-header
+echo "echo 'Welcome to the'" >> /etc/update-motd.d/00-header
+echo "figlet $servername" >> /etc/update-motd.d/00-header
+clear
+echo -e "$green Removing unncessary applications $default"
+sleep 2
+apt --purge remove -y cloud-* unattended-upgrades open-iscsi multipath-tools snapd nplan netplan.io
+apt autoremove -y
+rm -fr /root/snap
+clear
+echo -e "$green Disabling unnecssary services $default"
+systemctl stop systemd-resolve.service systemd-timesyncd.service
+systemctl disable system-resolve.service systemd-timesyncd.service
+systemctl mask system-resolve.service systemd-timesyncd.service
+rm /etc/resolv.conf
+echo "nameserver 8.8.8.8" > /etc/resolv.conf
+clear
+echo -e "$green Installing needed applications $default"
+sleep 2
+apt install -y ifupdown net-tools curl make figlet ipcalc traceroute dos2unix
+if [[ $needdocker == "y" ]]; then
+  apt install ca-cerficicates gnupg
+  mkdir -p /etc/apt/keyrings
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+  apt update
+  apt install docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-compose
+fi
+clear
+gw=
+case $opt in
+  1) echo -e "$green Setting interfaces for the IA Proxy $default"
+     nic1=$iapnic1; nic2=$iapnic2;;
+  2) echo -e "$green Setting interfaces for the RootDNS $default"
+     nic1=$rootdnsnic1; nic2=$rootdnsnic2; gw=$rootdnsgw;;
+  3) echo -e "$green Setting interfaces for the CA Server $default"
+     nic1=$canic1; nic2=$canic2; gw=$cagw;;
+  4) echo -e "$green Setting interfaces for the RTS $default"
+     nic1=$rtsnic1; nic2=$rtsnic2; gw=rtsgw;;
+  5) echo -e "$green Setting interfaces for the Web Services Server $default"
+     nic1=$webnic1; nic2=$webnic2;;
+  6) echo -e "$green Setting interfaces for the Traffic Gen Server $default"
+     nic1=trafnic1; nic2=trafnic2;;
+  7) echo -e "$green Setting interfaces for the Web Traffic Host Server $default"
+     nic1=$webhostnic1; nic2=$webhostnic2;;
+esac
+
+echo -e "auto lo\niface lo inet loopback" > /etc/network/interfaces
+for IP in $nic1; do
+  if [[ $IP == "dhcp" ]]; then
+    echo -e "\nauto $anic\niface $anic inet dhcp" >> /etc/network/interfaces
+  else
+    echo -e "\nauto $anic\niface $anic inet static\n\taddress $IP" >> /etc/network/interfaces
+  fi
+done
+count=0
+for IP in $nic2; do
+  if [[ $IP == "dhcp" ]]; then
+    echo -e "\nauto $gnic\niface $gnic inet dhcp" >> /etc/network/interfaces
+  else
+    if [[ $count == 0 ]]; then
+ 
+      echo -e "\nauto $gnic\niface $gnic inet static\n\taddress $IP" >> /etc/network/interfaces
+      if [[ ! -z $gw ]]; then
+        echo -e "\tgateway $gw" >> /etc/network/interfaces
+      fi
+    else
+      echo -e "\nauto $gnic:$count\niface $gnic:$count inet static\n\taddress $IP" >> /etc/network/interfaces
+    fi
+  fi
+  let count++
+done
+systemctl stop systemd-networkd.socket systemd-networkd networkd-dispatcher.service systemd-networkd-wait-online
+systemctl disable systemd-networkd.socket systemd-networkd networkd-dispatcher.service systemd-networkd-wait-online
+systemctl mask systemd-networkd.socket systemd-networkd networkd-dispatcher.service systemd-networkd-wait-online
+systemctl unmask networking
+systemctl enable networking
+service networking stop
+ip addr flush $anic
+ip addr flush $gnic
+service networking start
+case $opt in 
+  1) clear; echo -e "$green Installing $svr Specific Applications $default";
+     
+     apt install -y squid
+     mv /etc/squid/squid.conf /etc/squid/squidmanual.txt 
+     grep -v "^#" /etc/squid/squidmanual.txt | grep -v "^$" > /etc/squid/squid.conf
+     sed -i '/^acl localnet/d' /etc/squid/squid.conf
+     echo -e "acl localnet src 172.30.0.0/21\n$(cat /etc/squid/squid.conf)" > /etc/squid/squid.conf
+     sed -i 's/http_access allow localhost/http_access allow localnet/g' /etc/squid/squid.conf
+     service squid restart;;
+  2) clear; echo -e "$green Installing $svr Specific Applications $default";
+     apt update
+     apt install -y bind9 bind9utils bind9-doc
+     chmod 775 /etc/bind
+     mkdir -p /etc/bind/RANGE
+     mkdir -p /etc/bind/OPFOR
+     mkdir -p /etc/bind/TRAFFIC
+     cp -r /home/user/rootdns/blackhole /etc/bind
+     cp /home/user/rootdns/db.* /etc/bind/RANGE
+     cp /home/user/rootdns/named.conf.* /etc/bind
+     sed -i '/^OPTIONS/d' /etc/default/named
+     echo "OPTIONS=\"-u bind -4\"" >> /etc/default/named
+     echo "include \"/etc/bind/named.conf.OPFOR\";" >> /etc/bind/named.conf
+     echo "include \"/etc/bind/named.conf.RANGE\";" >> /etc/bind/named.conf
+     echo "include \"/etc/bind/named.conf.TRAFFIC\";" >> /etc/bind/named.conf
+     echo "include \"/etc/bind/rndc.key\";" >> /etc/bind/named.conf
+     service bind9 restart;;
+esac
