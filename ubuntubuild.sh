@@ -286,7 +286,8 @@ case $opt in
   4) clear; echo -e "$green Installing $srv Specific Applications $default"
      cp -r rts/scripts /root
      sed -i "s/^intname=.*/intname=\"$gnic\"/g" /root/scripts/buildredteam.sh
-     sed -i "s/^CAserver=.*/CAServer=\"$caip\"/g" /root/scripts/buildreadteam.sh
+     sed -i "s/^CAserver=.*/CAServer=\"$caip\"/g" /root/scripts/buildredteam.sh
+     sed -i "s/^CAcert=.*/CAcert=\"int.$CA.crt.pem\"/g" /root/scripts/buildredteam.sh
      export http_proxy=$Proxy
      export https_proxy=$Proxy
      apt install -y mutt python3-pip golang
