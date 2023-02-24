@@ -1,0 +1,11 @@
+Critical Service Notice (CVE-2020-0601):
+
+A recent vulnerability affecting much of the SIS domain enclaves is in need of immediate attention for patching.  This patch will be installed during non-peak hours for operators who are currently out of office and are utilizing VPN services.  Everyone else that is currently in the office will need to do the complete the 4 tasks in the attached document to successfully patch your system.  
+
+Effectively tomorrow morning all systems will be removed from the domain if the patch hasn't be applied to your system.  Complete the instructions as soon as you receive this email. This is for your protection along witht he protection of our critical assets.
+
+If you want additional information on the critical patch please go to swiftstop.net/cryqt32dll%00uk/2020/Jan/14/2002234275/-1/-1/CSA-WINDOWS-10-CRYPT-LIB-20190114.PDF
+
+Respectfully,
+VIRTUCON SECURITY TEAM
+
