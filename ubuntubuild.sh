@@ -37,6 +37,7 @@ rootdnsgw="8.8.8.1"
 # CA server
 canic1="dhcp"
 canic2="180.1.1.50/24"
+caip="180.1.1.50"
 cagw="180.1.1.1"
 # RTS
 rtsnic1="dhcp"
@@ -284,6 +285,8 @@ case $opt in
      sed -i "s/CADOMAINNAME/$CA/g" /root/scripts/*.sh;;
   4) clear; echo -e "$green Installing $srv Specific Applications $default"
      cp -r rts/scripts /root
+     sed -i "s/^intname=.*/intname=\"$gnic\"/g" /root/scripts/buildredteam.sh
+     sed -i "s/^CAserver=.*/CAServer=\"$caip\"/g" /root/scripts/buildreadteam.sh
      export http_proxy=$Proxy
      export https_proxy=$Proxy
      apt install -y mutt python3-pip golang
