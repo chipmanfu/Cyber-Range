@@ -40,8 +40,7 @@ canic2="180.1.1.50/24"
 cagw="180.1.1.1"
 # RTS
 rtsnic1="dhcp"
-rtsnic1="1.1.1.2/24"
-rtsgw="1.1.1.1"
+rtsnic2="1.1.1.2/24"
 # Web Servers
 webnic1="dhcp"
 # Traffic Gen
@@ -65,7 +64,7 @@ BuildMenu()
   echo -e "\t$ltblue 1)$white IA Proxy"
   echo -e "\t$ltblue 2)$white RootDNS"
   echo -e "\t$ltblue 3)$white CA Server"
-  echo -e "\t$ltblue 4)$white NRTS"
+  echo -e "\t$ltblue 4)$white RTS"
   echo -e "\t$ltblue 5)$white Web Services"
   echo -e "\t$ltblue 6)$white Traffic Gen"
   echo -e "\t$ltblue 7)$white Web Traffic Host"
@@ -151,12 +150,26 @@ echo -e "$green Installing needed applications $default"
 sleep 2
 apt install -y ifupdown net-tools curl make figlet ipcalc traceroute dos2unix
 if [[ $needdocker == "y" ]]; then
-  apt install ca-cerficicates gnupg
+  apt install -y ca-certificates gnupg
   mkdir -p /etc/apt/keyrings
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
   echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
   apt update
-  apt install docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-compose
+  apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-compose
+  mkdir -p /etc/systemd/system/docker.service.d
+  echo "[Service]" > /etc/systemd/system/docker.service.d/http-proxy.conf
+  echo "Environment=\"HTTP_PROXY=$Proxy\"" >> /etc/systemd/system/docker.service.d/http-proxy.conf
+  echo "Environment=\"HTTPS_PROXY=$Proxy\"" >> /etc/systemd/system/docker.service.d/http-proxy.conf
+  if grep -q "^export http_proxy" /etc/default/docker; then
+    sed -i '/export http_proxy/d' /etc/default/docker
+  fi
+  if greo -q "^export https_proxy" /etc/default/docker; then
+    sed -i '/export https_proxy/d' /etc/default/docker
+  fi
+  echo "export http_proxy=\"$Proxy\"" >> /etc/default/docker
+  echo "export https_proxy=\"$Proxy\"" >> /etc/default/docker
+  systemctl daemon-reload
+  systemctl restart docker
 fi
 clear
 gw=
@@ -269,4 +282,20 @@ case $opt in
      chmod 755 /root/scripts/*.sh
      sed -i "s/CAPASSWORD/$capempass/g" /root/scripts/*.sh
      sed -i "s/CADOMAINNAME/$CA/g" /root/scripts/*.sh;;
+  4) clear; echo -e "$green Installing $srv Specific Applications $default"
+     cp -r rts/scripts /root
+     export http_proxy=$Proxy
+     export https_proxy=$Proxy
+     apt install -y mutt python3-pip golang
+     cd /root
+     git clone https://github.com/FortyNorthSecurity/C2concealer
+     /root/C2concealer/install.sh
+     git clone https://github.com/Tylous/SourcePoint
+     cd /root/SourcePoint
+     go build SourcePoint.go
+     docker pull nginx
+     docker pull haproxy
+     docker pull httpd
+     docker pull ubuntu
+     apt install -y postfix;;
 esac
