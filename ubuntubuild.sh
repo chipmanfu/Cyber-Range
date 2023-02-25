@@ -73,7 +73,7 @@ BuildMenu()
   echo -e "\t$ltblue 1)$white IA Proxy"
   echo -e "\t$ltblue 2)$white RootDNS"
   echo -e "\t$ltblue 3)$white CA Server"
-  echo -e "\t$ltblue 4)$white RTS"
+  echo -e "\t$ltblue 4)$white Red Team Server"
   echo -e "\t$ltblue 5)$white Web Services"
   echo -e "\t$ltblue 6)$white Traffic Gen"
   echo -e "\t$ltblue 7)$white Web Traffic Host"
@@ -84,7 +84,7 @@ BuildMenu()
 	  1) srv="IA Proxy"; opt=1; needdocker=n;;
 	  2) srv="RootDNS"; opt=2; needdocker=n;;
 	  3) srv="CA Server"; opt=3; needdocker=n;;
-	  4) srv="NRTS"; opt=4; needdocker=y;;
+	  4) srv="Red Team Server"; opt=4; needdocker=y;;
 	  5) srv="Web Services"; opt=5; needdocker=y;;
 	  6) srv="Traffic Gen"; opt=6; needdocker=y;;
 	  7) srv="Web Traffic Host"; opt=7; needdocker=y;;
@@ -141,6 +141,7 @@ mv /etc/update-motd.d/* /etc/update-motd.d/originals 2</dev/null
 echo "#!/bin/bash" > /etc/update-motd.d/00-header
 echo "echo 'Welcome to the'" >> /etc/update-motd.d/00-header
 echo "figlet $srv" >> /etc/update-motd.d/00-header
+chmod 755 /etc/update-motd.d/00-header
 clear
 echo -e "$green Removing unncessary applications $default"
 sleep 2
@@ -295,18 +296,22 @@ case $opt in
      cp -r rts/scripts /root
      cp -r rts/backbonerouters /root
      cp -r rts/Profiles /root
+     echo -e "$green Grabbing Cobalt Strike $default"
      export TOKEN=$(curl -s https://download.cobaltstrike.com/download -d "dlkey=${csl}" | grep 'href="/downloads/' | cut -d '/' -f3) 
-     cd /root/
+     cd /root
      sed -i "s/^intname=.*/intname=\"$gnic\"/g" /root/scripts/buildredteam.sh
      sed -i "s/^CAserver=.*/CAServer=\"$caip\"/g" /root/scripts/buildredteam.sh
      sed -i "s/^CAcert=.*/CAcert=\"int.$CA.crt.pem\"/g" /root/scripts/buildredteam.sh
      wget https://download.cobaltstrike.com/downloads/${TOKEN}/latest46/cobaltstrike-dist.tgz
      tar -zxf cobaltstrike-dist.tgz
+     rm cobaltstrike-dist.tgz
      mv cobaltstrike cobaltstrike-local
      sed -i "s/^java/java -Dhttp.proxyHost=$ProxyIP -Dhttp.proxyPort=$ProxyPort -Dhttps.proxyHost=$ProxyIP -Dhttps.proxyPort=$ProxyPort/g" /root/cobaltstrike-local/update
      cd /root/cobaltstrike-local
+     echo -e "$green Updating Cobalt Strike $default"
      echo ${csl} | ./update
      cd /root
+     echo -e "$green Grabbing C2concealer $default"
      export http_proxy=$Proxy
      export https_proxy=$Proxy
      apt install -y mutt python3-pip golang
@@ -315,9 +320,11 @@ case $opt in
      cd C2concealer
      ./install.sh
      cd /root
+     echo -e "$green Grabbing SourcePoint $default"
      git clone https://github.com/Tylous/SourcePoint
      cd /root/SourcePoint
      go build SourcePoint.go
+     echo -e "$green Pulling docker images $default"
      docker pull nginx
      docker pull haproxy
      docker pull httpd
