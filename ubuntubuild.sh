@@ -296,6 +296,8 @@ case $opt in
      cp -r rts/scripts /root
      cp -r rts/backbonerouters /root
      cp -r rts/Profiles /root
+     sed -i "s/= 'i'/= 'a'/g" /etc/needrestart/needrestart.conf
+     sed -i "s/#\$nrconf{re/\$nrconf{re/g" /etc/needrestart/needrestart.conf
      echo -e "$green Grabbing Cobalt Strike $default"
      export TOKEN=$(curl -s https://download.cobaltstrike.com/download -d "dlkey=${csl}" | grep 'href="/downloads/' | cut -d '/' -f3) 
      cd /root
@@ -309,7 +311,9 @@ case $opt in
      sed -i "s/^java/java -Dhttp.proxyHost=$ProxyIP -Dhttp.proxyPort=$ProxyPort -Dhttps.proxyHost=$ProxyIP -Dhttps.proxyPort=$ProxyPort/g" /root/cobaltstrike-local/update
      cd /root/cobaltstrike-local
      echo -e "$green Updating Cobalt Strike $default"
+     sleep 2
      echo ${csl} | ./update
+     sleep 2
      cd /root
      echo -e "$green Grabbing C2concealer $default"
      export http_proxy=$Proxy
@@ -336,5 +340,5 @@ case $opt in
      echo "    apt clean && rm -rf /var/local/apt/lists/* /tmp/* /var/tmp/*" >> /root/Dockerfile
      echo "RUN update-java-alternatives -s java-1.11.0-openjdk-amd64" >> /root/Dockerfile
      docker build -t cobaltstrike /root
-     apt install -y postfix;;
+     apt install -no-install-recommends -y postfix;;
 esac
