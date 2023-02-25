@@ -293,7 +293,7 @@ case $opt in
      wget https://download.cobaltstrike.com/downloads/${TOKEN}/latest46/cobaltstrike-dist.tgz
      tar -zxf cobaltstrike-dist.tgz
      mv cobaltstrike cobaltstrike-local
-     sed -i "s/^java/java -Dhttp.proxyHost=$ProxyIP -Dhttp.proxyPort=$ProxyPort -Dhttps.proxyHost=$ProxyIP -Dhttps.proxyPort=$proxyPort/g" /root/cobaltstrike-local/update
+     sed -i "s/^java/java -Dhttp.proxyHost=$ProxyIP -Dhttp.proxyPort=$ProxyPort -Dhttps.proxyHost=$ProxyIP -Dhttps.proxyPort=$ProxyPort/g" /root/cobaltstrike-local/update
      echo ${csl} | /root/cobaltstrike-local/update
      cp -r rts/scripts /root
      sed -i "s/^intname=.*/intname=\"$gnic\"/g" /root/scripts/buildredteam.sh
@@ -311,6 +311,13 @@ case $opt in
      docker pull nginx
      docker pull haproxy
      docker pull httpd
-     docker pull ubuntu
+     echo "FROM ubuntu" > /root/Dockerfile
+     echo "ENV http_proxy $Proxy" >> /root/Dockerfile
+     echo "ENV https_proxy $Proxy" >> /root/Dockerfile
+     echo "USER root" >> /root/Dockerfile
+     echo "RUN apt update && apt install -no-install-recommends -y openjdk-11-jdk && \ " >> /root/Dockerfile
+     echo "    apt clean && rm -rf /var/local/apt/lists/* /tmp/* /var/tmp/*" >> /root/Dockerfile
+     echo "RUN update-java-alternatives -s java-1.11.0-openjdk-amd64" >> /root/Dockerfile
+     docker build -t cobaltstrike /root/Dockerfile
      apt install -y postfix;;
 esac
