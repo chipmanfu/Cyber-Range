@@ -340,5 +340,7 @@ case $opt in
      echo "    apt clean && rm -rf /var/local/apt/lists/* /tmp/* /var/tmp/*" >> /root/Dockerfile
      echo "RUN update-java-alternatives -s java-1.11.0-openjdk-amd64" >> /root/Dockerfile
      docker build -t cobaltstrike /root
-     apt install -no-install-recommends -y postfix;;
+     debconf-set-selections <<< "postfix postfix/mailname string rts"
+     debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
+     apt install --assume-yes postfix;;
 esac
