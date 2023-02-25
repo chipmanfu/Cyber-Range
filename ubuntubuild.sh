@@ -252,7 +252,7 @@ case $opt in
      mkdir -p /etc/bind/OPFOR
      mkdir -p /etc/bind/TRAFFIC
      cp -r rootdns/blackhole /etc/bind
-     cp -r rootdsn/scripts /root/
+     cp -r rootdns/scripts /root/
      cp rootdns/db.* /etc/bind/RANGE
      cp rootdns/named.conf.* /etc/bind
      sed -i '/^OPTIONS/d' /etc/default/named
