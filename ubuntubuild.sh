@@ -298,6 +298,8 @@ case $opt in
      cp -r rts/Profiles /root
      sed -i "s/= 'i'/= 'a'/g" /etc/needrestart/needrestart.conf
      sed -i "s/#\$nrconf{re/\$nrconf{re/g" /etc/needrestart/needrestart.conf
+     apt install -y openjdk-11-jdk
+     update-java-alternatives -s java-1.11.0-openjdk-amd64
      echo -e "$green Grabbing Cobalt Strike $default"
      export TOKEN=$(curl -s https://download.cobaltstrike.com/download -d "dlkey=${csl}" | grep 'href="/downloads/' | cut -d '/' -f3) 
      cd /root
