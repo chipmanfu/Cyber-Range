@@ -1,9 +1,10 @@
 #!/bin/bash
 clear
 
-# Proxy settings for the Range
+# Proxy settings for the Range if you change these, make sure the Proxy, ProxyIP, and ProxyPort all line up.
 Proxy="http://172.30.0.2:9999"
-
+ProxyIP="172.30.0.2"
+ProxyPort="9999"
 # Certificate Authority Variables
 CA="globalcert.com"
 cac="US"                 	# Country for cert
@@ -12,6 +13,9 @@ cal="Seattle"			# Locality (city)
 cao="Global Certificates, Inc"	# Organization
 caou="Root Cert"		# Organizational unit
 capempass="password"
+
+# Cobalt Strike License
+csl="008c-c31c-e321-0001"
 
 # Network Interfaces for various builds.
 # IA Proxy IP settings
@@ -284,6 +288,13 @@ case $opt in
      sed -i "s/CAPASSWORD/$capempass/g" /root/scripts/*.sh
      sed -i "s/CADOMAINNAME/$CA/g" /root/scripts/*.sh;;
   4) clear; echo -e "$green Installing $srv Specific Applications $default"
+     export TOKEN=$(curl -s https://download.cobaltstrike.com/download -d "dlkey=${csl}" | grep 'href="/downloads/' | cut -d '/' -f3) 
+     cd /root/
+     wget https://download.cobaltstrike.com/downloads/${TOKEN}/latest46/cobaltstrike-dist.tgz
+     tar -zxf cobaltstrike-dist.tgz
+     mv cobaltstrike cobaltstrike-local
+     sed -i "s/^java/java -Dhttp.proxyHost=$ProxyIP -Dhttp.proxyPort=$ProxyPort -Dhttps.proxyHost=$ProxyIP -Dhttps.proxyPort=$proxyPort/g" /root/cobaltstrike-local/update
+     echo ${csl} | /root/cobaltstrike-local/update
      cp -r rts/scripts /root
      sed -i "s/^intname=.*/intname=\"$gnic\"/g" /root/scripts/buildredteam.sh
      sed -i "s/^CAserver=.*/CAServer=\"$caip\"/g" /root/scripts/buildredteam.sh
