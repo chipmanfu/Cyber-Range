@@ -293,6 +293,8 @@ case $opt in
      sed -i "s/CADOMAINNAME/$CA/g" /root/scripts/*.sh;;
   4) clear; echo -e "$green Installing $srv Specific Applications $default"
      cp -r rts/scripts /root
+     cp -r rts/backbonerouters /root
+     cp -r rts/Profiles /root
      export TOKEN=$(curl -s https://download.cobaltstrike.com/download -d "dlkey=${csl}" | grep 'href="/downloads/' | cut -d '/' -f3) 
      cd /root/
      sed -i "s/^intname=.*/intname=\"$gnic\"/g" /root/scripts/buildredteam.sh
