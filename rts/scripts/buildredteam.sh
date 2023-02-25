@@ -852,7 +852,7 @@ RandomSSLGen()
   while read dom; do
     if [[ $dom == \#* ]]; then continue; fi
     cdomain=`echo $dom | cut -d, -f1`
-    ssh -n $CAserver "/root/certmaker.sh -d $cdomain -DNS1 www.$cdomain -r -q" &>/dev/null 
+    ssh -n $CAserver "/root/scripts/certmaker.sh -d $cdomain -DNS1 www.$cdomain -r -q" &>/dev/null 
     scp $CAserver:/var/www/html/$cdomain.key $srvpath/SSL &>/dev/null
     scp $CAserver:/var/www/html/$cdomain.crt $srvpath/SSL &>/dev/null
     scp $CAserver:/var/www/html/$cdomain.p12 $srvpath/SSL &>/dev/null
