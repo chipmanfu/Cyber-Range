@@ -288,23 +288,24 @@ case $opt in
      sed -i "s/CAPASSWORD/$capempass/g" /root/scripts/*.sh
      sed -i "s/CADOMAINNAME/$CA/g" /root/scripts/*.sh;;
   4) clear; echo -e "$green Installing $srv Specific Applications $default"
+     cp -r rts/scripts /root
      export TOKEN=$(curl -s https://download.cobaltstrike.com/download -d "dlkey=${csl}" | grep 'href="/downloads/' | cut -d '/' -f3) 
      cd /root/
+     sed -i "s/^intname=.*/intname=\"$gnic\"/g" /root/scripts/buildredteam.sh
+     sed -i "s/^CAserver=.*/CAServer=\"$caip\"/g" /root/scripts/buildredteam.sh
+     sed -i "s/^CAcert=.*/CAcert=\"int.$CA.crt.pem\"/g" /root/scripts/buildredteam.sh
      wget https://download.cobaltstrike.com/downloads/${TOKEN}/latest46/cobaltstrike-dist.tgz
      tar -zxf cobaltstrike-dist.tgz
      mv cobaltstrike cobaltstrike-local
      sed -i "s/^java/java -Dhttp.proxyHost=$ProxyIP -Dhttp.proxyPort=$ProxyPort -Dhttps.proxyHost=$ProxyIP -Dhttps.proxyPort=$ProxyPort/g" /root/cobaltstrike-local/update
      echo ${csl} | /root/cobaltstrike-local/update
-     cp -r rts/scripts /root
-     sed -i "s/^intname=.*/intname=\"$gnic\"/g" /root/scripts/buildredteam.sh
-     sed -i "s/^CAserver=.*/CAServer=\"$caip\"/g" /root/scripts/buildredteam.sh
-     sed -i "s/^CAcert=.*/CAcert=\"int.$CA.crt.pem\"/g" /root/scripts/buildredteam.sh
      export http_proxy=$Proxy
      export https_proxy=$Proxy
      apt install -y mutt python3-pip golang
      cd /root
      git clone https://github.com/FortyNorthSecurity/C2concealer
-     /root/C2concealer/install.sh
+     cd C2concealer
+     ./install.sh
      git clone https://github.com/Tylous/SourcePoint
      cd /root/SourcePoint
      go build SourcePoint.go
@@ -315,9 +316,9 @@ case $opt in
      echo "ENV http_proxy $Proxy" >> /root/Dockerfile
      echo "ENV https_proxy $Proxy" >> /root/Dockerfile
      echo "USER root" >> /root/Dockerfile
-     echo "RUN apt update && apt install -no-install-recommends -y openjdk-11-jdk && \ " >> /root/Dockerfile
+     echo "RUN apt update && apt install --no-install-recommends -y openjdk-11-jdk && \ " >> /root/Dockerfile
      echo "    apt clean && rm -rf /var/local/apt/lists/* /tmp/* /var/tmp/*" >> /root/Dockerfile
      echo "RUN update-java-alternatives -s java-1.11.0-openjdk-amd64" >> /root/Dockerfile
-     docker build -t cobaltstrike /root/Dockerfile
+     docker build -t cobaltstrike /root
      apt install -y postfix;;
 esac
