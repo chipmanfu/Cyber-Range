@@ -140,7 +140,7 @@ mv /etc/update-motd.d/* /etc/update-motd.d/originals 2</dev/null
 
 echo "#!/bin/bash" > /etc/update-motd.d/00-header
 echo "echo 'Welcome to the'" >> /etc/update-motd.d/00-header
-echo "figlet $servername" >> /etc/update-motd.d/00-header
+echo "figlet $srv" >> /etc/update-motd.d/00-header
 clear
 echo -e "$green Removing unncessary applications $default"
 sleep 2
@@ -304,7 +304,9 @@ case $opt in
      tar -zxf cobaltstrike-dist.tgz
      mv cobaltstrike cobaltstrike-local
      sed -i "s/^java/java -Dhttp.proxyHost=$ProxyIP -Dhttp.proxyPort=$ProxyPort -Dhttps.proxyHost=$ProxyIP -Dhttps.proxyPort=$ProxyPort/g" /root/cobaltstrike-local/update
-     echo ${csl} | /root/cobaltstrike-local/update
+     cd /root/cobaltstrike-local
+     echo ${csl} | ./update
+     cd /root
      export http_proxy=$Proxy
      export https_proxy=$Proxy
      apt install -y mutt python3-pip golang
