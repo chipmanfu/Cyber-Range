@@ -45,7 +45,11 @@ caip="180.1.1.50"
 cagw="180.1.1.1"
 # RTS
 rtsnic1="dhcp"
-rtsnic2="1.1.1.2/24"
+# Randomize an IP for the 5.29.0.1/20 IP range (this range is routable via the SI-router
+oct3=`shuf -i 0-15 -n 1`
+oct4=`shuf -i 2-254 -n 1`
+rtsnic2="5.29.$oct3.$oct4/20"
+rtsgw="5.29.0.1"
 # Web Servers
 webnic1="dhcp"
 # Traffic Gen
@@ -186,7 +190,7 @@ case $opt in
   3) echo -e "$green Setting interfaces for the CA Server $default"
      nic1=$canic1; nic2=$canic2; gw=$cagw;;
   4) echo -e "$green Setting interfaces for the RTS $default"
-     nic1=$rtsnic1; nic2=$rtsnic2; gw=rtsgw;;
+     nic1=$rtsnic1; nic2=$rtsnic2; gw=$rtsgw;;
   5) echo -e "$green Setting interfaces for the Web Services Server $default"
      nic1=$webnic1; nic2=$webnic2;;
   6) echo -e "$green Setting interfaces for the Traffic Gen Server $default"
@@ -306,6 +310,7 @@ case $opt in
      git clone https://github.com/FortyNorthSecurity/C2concealer
      cd C2concealer
      ./install.sh
+     cd /root
      git clone https://github.com/Tylous/SourcePoint
      cd /root/SourcePoint
      go build SourcePoint.go
