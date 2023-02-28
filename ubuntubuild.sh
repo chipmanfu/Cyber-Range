@@ -14,9 +14,6 @@ cao="Global Certificates, Inc"	# Organization
 caou="Root Cert"		# Organizational unit
 capempass="password"
 
-# Cobalt Strike License
-csl="008c-c31c-e321-0001"
-
 # Network Interfaces for various builds.
 # IA Proxy IP settings
 iapnic1="172.30.0.2/21"
@@ -301,6 +298,8 @@ case $opt in
      apt install -y openjdk-11-jdk
      update-java-alternatives -s java-1.11.0-openjdk-amd64
      echo -e "$green Grabbing Cobalt Strike $default"
+     echo -ne "$ltblue\t Please enter your Cobalt Strike License: $default"
+     read csl
      export TOKEN=$(curl -s https://download.cobaltstrike.com/download -d "dlkey=${csl}" | grep 'href="/downloads/' | cut -d '/' -f3) 
      cd /root
      sed -i "s/^intname=.*/intname=\"$gnic\"/g" /root/scripts/buildredteam.sh
