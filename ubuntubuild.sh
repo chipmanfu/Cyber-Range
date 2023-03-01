@@ -49,6 +49,13 @@ rtsnic2="5.29.$oct3.$oct4/20"
 rtsgw="5.29.0.1"
 # Web Servers
 webnic1="dhcp"
+webnic2="180.1.1.100/24
+         180.1.1.110/24
+         180.1.1.120/24"
+webgw="180.1.1.1"
+owncloudIP="180.1.1.100"
+pastebinIP="180.1.1.110"
+redbookIP="180.1.1.120"
 # Traffic Gen
 trafnic1="dhcp"
 # Web host
@@ -344,4 +351,24 @@ case $opt in
      debconf-set-selections <<< "postfix postfix/mailname string rts"
      debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
      apt install --assume-yes postfix;;
+  5) mkdir -p /root/owncloud
+     mkdir -p /root/owncloud/SSL
+     mkdir -p /root/pastebin
+     mkdir -p /root/pastebin/SSL
+     mkdir -p /root/redbook
+     mkdir -p /root/redbook/SSL
+     clear
+     echo "We need to set up SSH keys to connect to the CA server to create SSL certs"
+     echo "At the prompt use password 'toor'"
+     ssh-copy-id 180.1.1.50
+     ssh 180.1.1.50 `/root/scripts/certmaker.sh -q -d dropbox.com -C US -ST 'New York' -L 'New York City' -O 'Dropbox,inc' -CN dropbox.com -A dropbox -DNS1 www.dropbox.com`
+     ssh 180.1.1.50 `/root/scripts/certmaker.sh -q -d pastebin.com -c US -ST Utah -L Provo -O PasteBin -CN pastebin.com -A pastebin -DNS1 www.pastebin.com`
+     ssh 180.1.1.50 `/root/scripts/certmaker.sh -q -d redbook.com -C US -ST Hawaii -L 'big Island' -O 'things corp' -CN redbook.com -A redbook -DNS1 www.redbook.com`
+     scp 180.1.1.50:/var/www/html/dropbox* /root/owncloud/SSL
+     scp 180.1.1.50:/var/www/html/pastebin* /root/pastebin/SSL
+     scp 180.1.1.50:/var/www/html/redbook* /root/redbook/SSL 
+     cp webservices/owncloud/docker-compose.yml /root/owncloud
+     cd /root/owncloud
+     docker-compose up -d;;
+     
 esac
