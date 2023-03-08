@@ -1,4 +1,4 @@
-version: '2.1'
+version: '3'
 
 volumes:
   files:
@@ -13,23 +13,28 @@ volumes:
 services:
   owncloud:
     container_name: owncloud
-    image: owncloud/server:${OWNCLOUD_VERSION}
+    image: owncloud/server:10.11
     restart: always
     ports:
-      - 162.125.248.18:${HTTP_PORT}:8080
-      - 162.125.248.18:443:443
+      - 180.1.1.100:80:80
+      - 180.1.1.100:443:443
     depends_on:
       - db
       - redis
     environment:
-      - OWNCLOUD_DOMAIN=${OWNCLOUD_DOMAIN}
+      - APACHE_DOCUMENT_ROOT="/var/www/owncloud"
+      - APACHE_SERVER_NAME="dropbox.com"
+      - OWNCLOUD_TRUSTED_DOMAINS=180.1.1.100,dropbox.com,www.dropbox.com
+      - OWNCLOUD_ADMIN_USERNAME=admin
+      - OWNCLOUD_ADMIN_PASSWORD=toor
+      - APACHE_RUN_USER=www-data
+      - APACHE_RUN_GROUP=www-data
+      - OWNCLOUD_DOMAIN=dropbox.com
       - OWNCLOUD_DB_TYPE=mysql
       - OWNCLOUD_DB_NAME=owncloud
       - OWNCLOUD_DB_USERNAME=owncloud
       - OWNCLOUD_DB_PASSWORD=owncloud
       - OWNCLOUD_DB_HOST=db
-      - OWNCLOUD_ADMIN_USERNAME=${ADMIN_USERNAME}
-      - OWNCLOUD_ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - OWNCLOUD_MYSQL_UTF8MB4=true
       - OWNCLOUD_REDIS_ENABLED=true
       - OWNCLOUD_REDIS_HOST=redis
@@ -41,6 +46,8 @@ services:
     volumes:
       - files:/mnt/data
       - /root/owncloud/SSL:/mnt/data/certs
+      - /root/owncloud/999-apache.sh:/etc/owncloud.d/50-apache.sh
+      - /root/owncloud/config/:/configmod/
 
   db:
     container_name: owncloud_db
