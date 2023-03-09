@@ -197,7 +197,7 @@ case $opt in
   4) echo -e "$green Setting interfaces for the RTS $default"
      nic1=$rtsnic1; nic2=$rtsnic2; gw=$rtsgw;;
   5) echo -e "$green Setting interfaces for the Web Services Server $default"
-     nic1=$webnic1; nic2=$webnic2;;
+     nic1=$webnic1; nic2=$webnic2 gw=$webgw;;
   6) echo -e "$green Setting interfaces for the Traffic Gen Server $default"
      nic1=trafnic1; nic2=trafnic2;;
   7) echo -e "$green Setting interfaces for the Web Traffic Host Server $default"
@@ -361,14 +361,14 @@ case $opt in
      clear
      echo "We need to set up SSH keys to connect to the CA server to create SSL certs"
      echo "At the prompt use password 'toor'"
-     ssh-copy-id 180.1.1.50
+     ssh-copy-id -o StrictHostKeyChecking=no 180.1.1.50
      ssh 180.1.1.50 `/root/scripts/certmaker.sh -q -d dropbox.com -C US -ST 'New York' -L 'New York City' -O 'Dropbox,inc' -CN dropbox.com -A dropbox -DNS1 www.dropbox.com`
      ssh 180.1.1.50 `/root/scripts/certmaker.sh -q -d pastebin.com -c US -ST Utah -L Provo -O PasteBin -CN pastebin.com -A pastebin -DNS1 www.pastebin.com`
      ssh 180.1.1.50 `/root/scripts/certmaker.sh -q -d redbook.com -C US -ST Hawaii -L 'big Island' -O 'things corp' -CN redbook.com -A redbook -DNS1 www.redbook.com`
      scp 180.1.1.50:/var/www/html/dropbox* /root/owncloud/SSL
      scp 180.1.1.50:/var/www/html/pastebin* /root/pastebin/SSL
      scp 180.1.1.50:/var/www/html/redbook* /root/redbook/SSL 
-     cp webservices/owncloud/docker-compose.yml /root/owncloud
+     cp -r webservices/owncloud/* /root/owncloud/
      cd /root/owncloud
      docker-compose up -d;;
      
