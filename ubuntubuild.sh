@@ -162,7 +162,7 @@ echo "nameserver 8.8.8.8" > /etc/resolv.conf
 clear
 echo -e "$green Installing needed applications $default"
 sleep 2
-apt install -y ifupdown net-tools curl make figlet ipcalc traceroute dos2unix
+apt install -y ifupdown net-tools curl make figlet ipcalc traceroute dos2unix sshpass
 if [[ $needdocker == "y" ]]; then
   apt install -y ca-certificates gnupg
   mkdir -p /etc/apt/keyrings
@@ -361,13 +361,12 @@ case $opt in
      clear
      echo "We need to set up SSH keys to connect to the CA server to create SSL certs"
      echo "At the prompt use password 'toor'"
-     ssh-copy-id -o StrictHostKeyChecking=no 180.1.1.50
-     ssh 180.1.1.50 `/root/scripts/certmaker.sh -q -d dropbox.com -C US -ST 'New York' -L 'New York City' -O 'Dropbox,inc' -CN dropbox.com -A dropbox -DNS1 www.dropbox.com`
-     ssh 180.1.1.50 `/root/scripts/certmaker.sh -q -d pastebin.com -c US -ST Utah -L Provo -O PasteBin -CN pastebin.com -A pastebin -DNS1 www.pastebin.com`
-     ssh 180.1.1.50 `/root/scripts/certmaker.sh -q -d redbook.com -C US -ST Hawaii -L 'big Island' -O 'things corp' -CN redbook.com -A redbook -DNS1 www.redbook.com`
-     scp 180.1.1.50:/var/www/html/dropbox* /root/owncloud/SSL
-     scp 180.1.1.50:/var/www/html/pastebin* /root/pastebin/SSL
-     scp 180.1.1.50:/var/www/html/redbook* /root/redbook/SSL 
+     sshpass -p toor ssh -o StrictHostKeyChecking=no 180.1.1.50  `/root/scripts/certmaker.sh -q -d dropbox.com -C US -ST 'New York' -L 'New York City' -O 'Dropbox,inc' -CN dropbox.com -A dropbox -DNS1 www.dropbox.com`
+     sshpass -p toor ssh 180.1.1.50 `/root/scripts/certmaker.sh -q -d pastebin.com -c US -ST Utah -L Provo -O PasteBin -CN pastebin.com -A pastebin -DNS1 www.pastebin.com`
+     sshpass -p toor ssh 180.1.1.50 `/root/scripts/certmaker.sh -q -d redbook.com -C US -ST Hawaii -L 'big Island' -O 'things corp' -CN redbook.com -A redbook -DNS1 www.redbook.com`
+     sshpass -p toor scp -r 180.1.1.50:/var/www/html/dropbox* /root/owncloud/SSL
+     sshpass -p toor scp -r 180.1.1.50:/var/www/html/pastebin* /root/pastebin/SSL
+     sshpass -p toor scp -r 180.1.1.50:/var/www/html/redbook* /root/redbook/SSL 
      cp -r webservices/owncloud/* /root/owncloud/
      cd /root/owncloud
      docker-compose up -d;;
