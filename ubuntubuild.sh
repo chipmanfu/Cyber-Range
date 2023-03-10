@@ -360,23 +360,23 @@ case $opt in
      clear
      echo -e "$green Pulling SSL certs for dropbox.com, pastebin.com, and redbook.com $default"
      sleep 2
-     existingcerts=`sshpass -p toor ssh 180.1.1.50 'ls /var/www/html'`
+     existingcerts=`sshpass -p toor ssh -o StrictHostKeyChecking=no 180.1.1.50 'ls /var/www/html'`
      if echo $existingcerts | grep dropbox.com.crt > /dev/null; then
        echo "dropbox.com certs exists, skipping creation"
      else
-       sshpass -p toor ssh -o StrictHostKeyChecking=no 180.1.1.50  "/root/scripts/certmaker.sh -q -d dropbox.com -C US -ST 'New York' -L 'New York City' -O 'Dropbox,inc' -CN dropbox.com -A dropbox -DNS1 www.dropbox.com"
+       sshpass -p toor ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d dropbox.com -C US -ST 'New York' -L 'New York City' -O 'Dropbox,inc' -CN dropbox.com -A dropbox -DNS1 www.dropbox.com"
      fi
      if echo $existingcerts | grep pastebin.com.crt > /dev/null; then
        echo "pastebin.com certs exists, skipping creation"
      else
-       sshpass -p toor ssh -o StrictHostKeyChecking=no 180.1.1.50 "/root/scripts/certmaker.sh -q -d pastebin.com -C US -ST Utah -L Provo -O PasteBin -CN pastebin.com -A pastebin -DNS1 www.pastebin.com"
+       sshpass -p toor ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d pastebin.com -C US -ST Utah -L Provo -O PasteBin -CN pastebin.com -A pastebin -DNS1 www.pastebin.com"
      fi
      if echo $existingcerts | grep redbook.com.crt > /dev/null; then
        echo "redbook.com certs exists, skipping creation"
      else
        sshpass -p toor ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d redbook.com -C US -ST Hawaii -L 'big Island' -O 'things corp' -CN redbook.com -A redbook -DNS1 www.redbook.com"
      fi
-     sshpass -p toor scp -r -o StrictHostKeyChecking=no 180.1.1.50:/var/www/html/dropbox* /root/owncloud/SSL
+     sshpass -p toor scp -r 180.1.1.50:/var/www/html/dropbox* /root/owncloud/SSL
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/pastebin* /root/pastebin/SSL
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/redbook* /root/redbook/SSL 
      clear 
