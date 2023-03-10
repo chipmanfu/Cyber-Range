@@ -390,6 +390,13 @@ case $opt in
      sleep 2
      cp -r /home/user/Cyber-Range/webservices/pastebin/* /root/pastebin/
      cd /root/pastebin
-     docker-compose up -d;;
+     docker-compose up --build -d
+     clear
+     echo -e "$greeen Setting up Redbook server $default"
+     sleep 2
+     cp -r /home/user/Cyber-Range/webservices/redbook/* /root/redbook/
+     cd /root/redbook
+     docker-compose up -d
+     clear;;
      
 esac

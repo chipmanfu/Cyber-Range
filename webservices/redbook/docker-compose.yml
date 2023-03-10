@@ -1,0 +1,49 @@
+version: '3'
+volumes:
+  bookstackVol:
+    driver: local
+  bookstackdbVol:
+    driver: local
+services:
+  bookstack:
+    image: lscr.io/linuxserver/bookstack
+    container_name: bookstack
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - APP_URL=https://redbook.com
+      - DB_HOST=bookstack_db
+      - DB_PORT=3306
+      - DB_USER=bookstack
+      - DB_PASS=bookstack
+      - DB_DATABASE=bookstackapp
+    volumes:
+      - bookstackVol:/config
+    ports:
+      - 180.1.1.120:80:80
+#      - 180.1.1.120:443:443
+    restart: unless-stopped
+    depends_on: 
+      - bookstack_db
+  bookstack_db:
+    image: lscr.io/linuxserver/mariadb
+    container_name: bookstack_db
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - MYSQL_ROOT_PASSWORD=bookstack
+      - TZ=America/Chicago
+      - MYSQL_DATABASE=bookstackapp
+      - MYSQL_USER=bookstack
+      - MYSQL_PASSWORD=bookstack
+    volumes:
+      - bookstackdbVol:/config
+    restart: unless-stopped
+  nginx:
+    container_name: nginx_bookstack
+    image: nginx
+    volumes: 
+      - /root/redbook/SSL:/SSL
+      - /root/redbook/config/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - 180.1.1.120:443:443
