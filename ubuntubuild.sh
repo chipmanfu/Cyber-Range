@@ -117,15 +117,15 @@ fi
 servername=$srv
 if [[ $opt != 1 ]]; then
 	# Set up wget to use real internet proxy
-        if grep ^use_proxy /etc/wgetrc; then
-           sed -i '/^user_proxy/d' /etc wgetrc
+        if grep ^use_proxy /etc/wgetrc > /dev/null; then
+           sed -i '/^use_proxy/d' /etc/wgetrc
         fi
         echo "use_proxy=yes" >> /etc/wgetrc	
-        if grep ^http_proxy /etc/wgetrc; then
+        if grep ^http_proxy /etc/wgetrc > /dev/null; then
            sed -i '/^http_proxy/d' /etc/wgetrc
         fi
         echo "http_proxy=$Proxy" >> /etc/wgetrc
-        if grep ^https_proxy /etc/wgetrc; then
+        if grep ^https_proxy /etc/wgetrc > /dev/null; then
           sed -i '/^https_proxy/d' /etc/wgetrc
         fi
         echo "https_proxy=$Proxy" >> /etc/wgetrc
@@ -133,7 +133,6 @@ if [[ $opt != 1 ]]; then
 	echo "Acquire::http::Proxy \"$Proxy\";" > /etc/apt/apt.conf.d/proxy.conf
 	echo "Acquire::https::Proxy \"$Proxy\";" >> /etc/apt/apt.conf.d/proxy.conf
 fi
-
 echo -e "$green Changings some environment settings $default"
 sleep 2
 echo "colo industry" > /root/.vimrc
@@ -166,7 +165,7 @@ apt install -y ifupdown net-tools curl make figlet ipcalc traceroute dos2unix ss
 if [[ $needdocker == "y" ]]; then
   apt install -y ca-certificates gnupg
   mkdir -p /etc/apt/keyrings
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor --batch --yes -o /etc/apt/keyrings/docker.gpg
   echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
   apt update
   apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-compose
@@ -177,7 +176,7 @@ if [[ $needdocker == "y" ]]; then
   if grep -q "^export http_proxy" /etc/default/docker; then
     sed -i '/export http_proxy/d' /etc/default/docker
   fi
-  if greo -q "^export https_proxy" /etc/default/docker; then
+  if grep -q "^export https_proxy" /etc/default/docker; then
     sed -i '/export https_proxy/d' /etc/default/docker
   fi
   echo "export http_proxy=\"$Proxy\"" >> /etc/default/docker
@@ -359,22 +358,35 @@ case $opt in
      mkdir -p /root/redbook
      mkdir -p /root/redbook/SSL
      clear
-     echo "Pulling SSL certs for dropbox.com, pastebin.com, and redbook.com"
+     echo -e "$green Pulling SSL certs for dropbox.com, pastebin.com, and redbook.com $default"
      sleep 2
-     sshpass -p toor ssh -o StrictHostKeyChecking=no 180.1.1.50  "/root/scripts/certmaker.sh -q -d dropbox.com -C US -ST 'New York' -L 'New York City' -O 'Dropbox,inc' -CN dropbox.com -A dropbox -DNS1 www.dropbox.com"
-     sshpass -p toor ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d pastebin.com -C US -ST Utah -L Provo -O PasteBin -CN pastebin.com -A pastebin -DNS1 www.pastebin.com"
-     sshpass -p toor ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d redbook.com -C US -ST Hawaii -L 'big Island' -O 'things corp' -CN redbook.com -A redbook -DNS1 www.redbook.com"
-     sshpass -p toor scp -r 180.1.1.50:/var/www/html/dropbox* /root/owncloud/SSL
+     existingcerts=`sshpass -p toor ssh 180.1.1.50 'ls /var/www/html'`
+     if echo $existingcerts | grep dropbox.com.crt > /dev/null; then
+       echo "dropbox.com certs exists, skipping creation"
+     else
+       sshpass -p toor ssh -o StrictHostKeyChecking=no 180.1.1.50  "/root/scripts/certmaker.sh -q -d dropbox.com -C US -ST 'New York' -L 'New York City' -O 'Dropbox,inc' -CN dropbox.com -A dropbox -DNS1 www.dropbox.com"
+     fi
+     if echo $existingcerts | grep pastebin.com.crt > /dev/null; then
+       echo "pastebin.com certs exists, skipping creation"
+     else
+       sshpass -p toor ssh -o StrictHostKeyChecking=no 180.1.1.50 "/root/scripts/certmaker.sh -q -d pastebin.com -C US -ST Utah -L Provo -O PasteBin -CN pastebin.com -A pastebin -DNS1 www.pastebin.com"
+     fi
+     if echo $existingcerts | grep redbook.com.crt > /dev/null; then
+       echo "redbook.com certs exists, skipping creation"
+     else
+       sshpass -p toor ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d redbook.com -C US -ST Hawaii -L 'big Island' -O 'things corp' -CN redbook.com -A redbook -DNS1 www.redbook.com"
+     fi
+     sshpass -p toor scp -r -o StrictHostKeyChecking=no 180.1.1.50:/var/www/html/dropbox* /root/owncloud/SSL
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/pastebin* /root/pastebin/SSL
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/redbook* /root/redbook/SSL 
      clear 
-     echo "Setting up owncloud server"
+     echo -e "$green Setting up owncloud server $default"
      sleep 2
      cp -r webservices/owncloud/* /root/owncloud/
      cd /root/owncloud
      docker-compose up -d
      clear
-     echo "Setting up pastebin server"
+     echo -e "$green Setting up pastebin server $default"
      sleep 2
      cp -r /home/user/Cyber-Range/webservices/pastebin/* /root/pastebin/
      cd /root/pastebin
