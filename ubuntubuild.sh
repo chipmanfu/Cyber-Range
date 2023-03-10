@@ -376,7 +376,7 @@ case $opt in
      clear
      echo "Setting up pastebin server"
      sleep 2
-     cp -r webservices/pastebin/* /root/pastebin/
+     cp -r /home/user/Cyber-Range/webservices/pastebin/* /root/pastebin/
      cd /root/pastebin
      docker-compose up -d;;
      
