@@ -1,8 +1,7 @@
 # This list will be used used to build out external smtp servers
 # List should be fqdn,IP - for example.  gmail.com,97.107.131.12
-widgets.com,69.20.120.55
-msn.com,72.32.3.23
-salesforce.net,161.58.129.213
-facebook.com,140.147.249.34
-microsystems.com,67.23.31.87
-gmail.com,97.107.131.12
+gmail.com,92.107.127.12
+msn.com,72.32.4.26
+salesforce.net,67.23.44.93
+linkedln.com,70.32.91.153
+facebook.com,188.65.120.83
