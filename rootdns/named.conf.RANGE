@@ -30,3 +30,34 @@ zone "globalcert.com." IN {
 	allow-query { any; };
 	allow-update { none; };
 };
+// SMTP External Traffic Gen
+zone "gmail.com." IN {
+	type master;
+	file "RANGE/db.gmail.com";
+	allow-query { any; };
+	allow-update { none; };
+};
+zone "msn.com." IN {
+	type master;
+	file "RANGE/db.msn.com";
+	allow-query { any; };
+	allow-update { none; };
+};
+zone "salesforce.net." IN {
+	type master;
+	file "RANGE/db.salesforce.net";
+	allow-query { any; };
+	allow-update { none; };
+};
+zone "linkedln.com." IN {
+	type master;
+	file "RANGE/db.linkedln.com";
+	allow-query { any; };
+	allow-update { none; };
+};
+zone "facebook.com." IN {
+	type master;
+	file "RANGE/db.facebook.com";
+	allow-query { any; };
+	allow-update { none; };
+};

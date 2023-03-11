@@ -58,6 +58,12 @@ pastebinIP="180.1.1.110"
 redbookIP="180.1.1.120"
 # Traffic Gen
 trafnic1="dhcp"
+trafnic2="92.107.127.12/24
+          72.32.4.26/24
+	  67.23.44.93/24
+	  70.32.91.153/24
+	  188.65.120.83/24"
+trafgw="92.107.127.1"
 # Web host
 webhostnic1="dhcp"
 
@@ -196,9 +202,9 @@ case $opt in
   4) echo -e "$green Setting interfaces for the RTS $default"
      nic1=$rtsnic1; nic2=$rtsnic2; gw=$rtsgw;;
   5) echo -e "$green Setting interfaces for the Web Services Server $default"
-     nic1=$webnic1; nic2=$webnic2 gw=$webgw;;
+     nic1=$webnic1; nic2=$webnic2; gw=$webgw;;
   6) echo -e "$green Setting interfaces for the Traffic Gen Server $default"
-     nic1=trafnic1; nic2=trafnic2;;
+     nic1=$trafnic1; nic2=$trafnic2; gw=$trafgw;;
   7) echo -e "$green Setting interfaces for the Web Traffic Host Server $default"
      nic1=$webhostnic1; nic2=$webhostnic2;;
 esac
@@ -374,7 +380,7 @@ case $opt in
      if echo $existingcerts | grep redbook.com.crt > /dev/null; then
        echo "redbook.com certs exists, skipping creation"
      else
-       sshpass -p toor ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d redbook.com -C US -ST Hawaii -L 'big Island' -O 'things corp' -CN redbook.com -A redbook -DNS1 www.redbook.com -DNS1 redbook.com"
+       sshpass -p toor ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d redbook.com -C US -ST Hawaii -L 'big Island' -O 'things corp' -CN redbook.com -A redbook -DNS1 www.redbook.com -DNS2 redbook.com"
      fi
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/dropbox* /root/owncloud/SSL
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/pastebin* /root/pastebin/SSL
@@ -398,5 +404,10 @@ case $opt in
      cd /root/redbook
      docker-compose up -d
      clear;;
-     
+  6) clear
+     echo -e "$green Setting up External SMTP Traffic Gen $default"
+     sleep 2
+     cp -r /home/user/Cyber-Range/trafficgen/* /root/
+     cd /root
+     docker build -t emailgen .;;
 esac

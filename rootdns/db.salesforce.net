@@ -1,0 +1,8 @@
+$TTL 3600
+@	IN	SOA	@	ns1.salesforce.net. 42 3H 15M 1W 1D
+@	IN	NS		ns1.salesforce.net.
+@	IN	MX	10	salesforce.net.
+@	IN	A		67.23.44.93	
+mail	IN	A		67.23.44.93
+www	IN	A		67.23.44.93
+ns1	IN	A		198.41.0.4
