@@ -364,17 +364,17 @@ case $opt in
      if echo $existingcerts | grep dropbox.com.crt > /dev/null; then
        echo "dropbox.com certs exists, skipping creation"
      else
-       sshpass -p toor ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d dropbox.com -C US -ST 'New York' -L 'New York City' -O 'Dropbox,inc' -CN dropbox.com -A dropbox -DNS1 www.dropbox.com"
+       sshpass -p toor ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d dropbox.com -C US -ST 'New York' -L 'New York City' -O 'Dropbox,inc' -CN dropbox.com -A dropbox -DNS1 www.dropbox.com -DNS2 dropbox.com"
      fi
      if echo $existingcerts | grep pastebin.com.crt > /dev/null; then
        echo "pastebin.com certs exists, skipping creation"
      else
-       sshpass -p toor ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d pastebin.com -C US -ST Utah -L Provo -O PasteBin -CN pastebin.com -A pastebin -DNS1 www.pastebin.com"
+       sshpass -p toor ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d pastebin.com -C US -ST Utah -L Provo -O PasteBin -CN pastebin.com -A pastebin -DNS1 www.pastebin.com -DNS2 pastebin.com"
      fi
      if echo $existingcerts | grep redbook.com.crt > /dev/null; then
        echo "redbook.com certs exists, skipping creation"
      else
-       sshpass -p toor ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d redbook.com -C US -ST Hawaii -L 'big Island' -O 'things corp' -CN redbook.com -A redbook -DNS1 www.redbook.com"
+       sshpass -p toor ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d redbook.com -C US -ST Hawaii -L 'big Island' -O 'things corp' -CN redbook.com -A redbook -DNS1 www.redbook.com -DNS1 redbook.com"
      fi
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/dropbox* /root/owncloud/SSL
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/pastebin* /root/pastebin/SSL
