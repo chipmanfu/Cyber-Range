@@ -252,7 +252,7 @@ case $opt in
      sed -i '/^acl localnet/d' /etc/squid/squid.conf
      echo -e "acl localnet src 172.30.0.0/21\n$(cat /etc/squid/squid.conf)" > /etc/squid/squid.conf
      sed -i 's/http_access allow localhost/http_access allow localnet/g' /etc/squid/squid.conf
-     sed -i "/s/^http_port 3128/http_port $ProxyPort/g" /etc/squid/squid.conf
+     sed -i "s/^http_port 3128/http_port $ProxyPort/g" /etc/squid/squid.conf
      service squid restart;;
   2) clear; echo -e "$green Installing $svr Specific Applications $default";
      apt update
