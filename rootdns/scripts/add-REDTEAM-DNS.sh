@@ -139,14 +139,14 @@ else
   cat $sdir/zones.tmp $bdir/named.conf.OPFOR > $sdir/named.tmp
 
   # Checks the modified named.conf configuration
-  if /usr/sbin/named-checkconf $sdir/named.tmp > /dev/null 2>&1
+  if named-checkconf $sdir/named.tmp > /dev/null 2>&1
   then
     echo "DNS Zone changes to named.conf checked out good"
     rm $sdir/zones.tmp
     mv $sdir/named.tmp $bdir/named.conf.OPFOR
   else
     echo "DNZ Zone Changes created errors, see below"
-    /usr/sbin/named-checkconf $sdir/named.tmp
+    named-checkconf $sdir/named.tmp
     rm $sdir/named.tmp
     rm $sdir/zones.tmp
     rm $PIDFILE
@@ -165,7 +165,7 @@ then
   echo "bind9 is good, have a good day!"
 else
   echo "Bind9 has a problem, WHAT DID YOU DO!!"
-  /usr/sbin/named-checkconf $bdir/named.conf.OPFOR
+  named-checkconf $bdir/named.conf.OPFOR
   rm $PIDFILE
   exit 1
 fi
