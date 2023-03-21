@@ -1196,7 +1196,7 @@ BuildHAProxyConfig()
       if [[ $line == \#* ]]; then continue; fi
       sip=`echo $line | cut -d, -f2`
       sdom=`echo $line | cut -d, -f1`
-      echo -e "  bind $sip:443 ssl crt /SSL/$sdom.pem" >> $haproxyconf
+      echo -e "  bind $sip:443 ssl crt /SSL/$sdom.crt" >> $haproxyconf
     done<$srvpath/$DNSlist
     echo -e "  http-request add-header X-Forwarded-Proto https" >> $haproxyconf
     # add code to insert acl based on teamserver profile

@@ -83,7 +83,7 @@ BuildMenu()
   echo -e "\t$ltblue 1)$white IA Proxy"
   echo -e "\t$ltblue 2)$white RootDNS"
   echo -e "\t$ltblue 3)$white CA Server"
-  echo -e "\t$ltblue 4)$white Red Team Server"
+  echo -e "\t$ltblue 4)$white Not Red Team Server (NRTS)"
   echo -e "\t$ltblue 5)$white Web Services"
   echo -e "\t$ltblue 6)$white Traffic Gen"
   echo -e "\t$ltblue 7)$white Web Traffic Host"
