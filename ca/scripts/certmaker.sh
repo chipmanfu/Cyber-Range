@@ -155,9 +155,11 @@ openssl pkcs12 -inkey /root/ca/intermediate/private/$domain.key -in /root/ca/int
 cp /root/ca/intermediate/private/$domain.key /var/www/html
 cp /root/ca/intermediate/certs/$domain.crt /var/www/html
 cp /root/ca/intermediate/certs/$domain.p12 /var/www/html
+cat /var/www/html/$domain.key /var/www/html/$domain.crt > /var/www/html/$domain.pem
 if [[ $quiet == "" ]]; then
   echo "New Certs created, scp them to the system you will use them on" 
   echo "scp /var/www/html/$domain.key <yourSystemIP>:/root/"  
   echo "scp /var/www/html/$domain.crt <yourSystemIP>:/root/"
   echo "scp /var/www/html/$domain.p12 <yourSystemIP>:/root/"
+  echo "scp /var/www/html/$domain.pem <yourSystemIP>:/root/"
 fi

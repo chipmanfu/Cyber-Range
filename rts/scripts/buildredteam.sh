@@ -1291,7 +1291,7 @@ BuildNGINXConfig()
         echo -e "\t\t\tproxy_ssl_verify off;" >> $nginxconf
         echo -e "\t\t\tproxy_set_header Host \$host;" >> $nginxconf
         echo -e "\t\t}" >> $nginxconf
-        echo -e "\t\tssl_certificate /SSL/$sdom.crt;" >> $nginxconf
+        echo -e "\t\tssl_certificate /SSL/$sdom.pem;" >> $nginxconf
         echo -e "\t\tssl_certificate_key /SSL/$sdom.key;" >> $nginxconf
         echo -e "\t}" >> $nginxconf
       done<$srvpath/$DNSlist
