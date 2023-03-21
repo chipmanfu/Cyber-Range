@@ -41,7 +41,7 @@ do
 done
 # Remove reference in named.conf
 sed "/\/\/$namedstart/,/\/\/$namedend/d" $confile > $sdir/named.tmp
-if named-checkconf $sdir/named.tmp > /dev/null 2>&1
+if /usr/bin/named-checkconf $sdir/named.tmp > /dev/null 2>&1
 then
   echo "Named.conf cleaned up and passed checkconf"
   mv $sdir/named.tmp $confile
@@ -52,7 +52,7 @@ then
 else
   echo "There were errors in the named.conf changes"
   echo "Check the named.tmp file to see what the issue is"
-  named-checkconf $sdir/named.tmp 
+  /usr/bin/named-checkconf $sdir/named.tmp 
 fi
   ## Last step, restart bind on the recursive dns server to clear cache.
 ssh root@$rDNS service bind9 restart;
