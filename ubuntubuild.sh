@@ -363,8 +363,10 @@ case $opt in
      mkdir -p /root/pastebin/SSL
      mkdir -p /root/redbook
      mkdir -p /root/redbook/SSL
+     mkdir -p /root/drawio
+     mkdir -p /root/drawio/SSL
      clear
-     echo -e "$green Pulling SSL certs for dropbox.com, pastebin.com, and redbook.com $default"
+     echo -e "$green Pulling SSL certs for dropbox.com, pastebin.com, diagams.net, and redbook.com $default"
      sleep 2
      existingcerts=`sshpass -p toor ssh -o StrictHostKeyChecking=no 180.1.1.50 'ls /var/www/html'`
      if echo $existingcerts | grep dropbox.com.crt > /dev/null; then
@@ -382,9 +384,15 @@ case $opt in
      else
        sshpass -p toor ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d redbook.com -C US -ST Hawaii -L 'big Island' -O 'things corp' -CN redbook.com -A redbook -DNS1 www.redbook.com -DNS2 redbook.com"
      fi
+     if echo $existingcerts | grep diagrams.net.crt > /dev/null; then
+       echo "diagrams.net certs exists, skipping creation"
+     else
+       sshpass -p toor ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d diagrams.net -C US -ST Idaho -L Boise -O 'draw corp' -CN diagrams.net -A diagrams -DNS1 diagrams.net -DNS2 embed.diagrams.net"
+     fi
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/dropbox* /root/owncloud/SSL
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/pastebin* /root/pastebin/SSL
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/redbook* /root/redbook/SSL 
+     sshpass -p toor scp -r 180.1.1.50:/var/www/html/diagrams* /root/drawio/SSL
      clear 
      echo -e "$green Setting up owncloud server $default"
      sleep 2
@@ -403,7 +411,12 @@ case $opt in
      cp -r /home/user/Cyber-Range/webservices/redbook/* /root/redbook/
      cd /root/redbook
      docker-compose up -d
-     clear;;
+     clear
+     echo -e "$green Setting up diagrams.net server $default"
+     sleep 2
+     cp -r /home/user/Cyber-Range/webservices/drawio/* /root/drawio/
+     cd /root/drawio
+     docker-compose up -d;;
   6) clear
      echo -e "$green Setting up External SMTP Traffic Gen $default"
      sleep 2

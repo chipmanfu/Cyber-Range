@@ -19,12 +19,8 @@ services:
       - DB_DATABASE=bookstackapp
     volumes:
       - webVol:/config
-      - /root/redbook/SSL/redbook.com.crt:/config/keys/cert.crt
-      - /root/redbook/SSL/redbook.com.key:/config/keys/cert.key
-      - /root/redbook/config/ssl.conf:/config/nginx/ssl.conf
     ports:
       - 180.1.1.120:80:80
-      - 180.1.1.120:443:443
     restart: unless-stopped
     depends_on: 
       - bookstack_db
@@ -42,3 +38,11 @@ services:
     volumes:
       - dbVol:/config
     restart: unless-stopped
+  nginx:
+    container_name: nginx_bookstack
+    image: nginx
+    volumes:
+      - /root/redbook/SSL:/SSL
+      - /root/redbook/config/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - 180.1.1.120:443:443

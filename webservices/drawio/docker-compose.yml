@@ -1,0 +1,16 @@
+version: "3.5"
+services:
+  drawio:
+    image: jgraph/drawio
+    container_name: drawio
+    restart: unless-stopped
+    ports:
+      - 180.1.1.130:8080:8080
+  nginx:
+    container_name: draw_nginx
+    image: nginx
+    volumes:
+      - /root/drawio/SSL:/SSL
+      - /root/drawio/config/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - 180.1.1.130:443:443
