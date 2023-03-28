@@ -7,8 +7,9 @@ services:
     ports:
       - 180.1.1.130:8080:8080
   nginx:
-    container_name: draw_nginx
+    container_name: nginx_drawio 
     image: nginx
+    restart: unless-stopped
     volumes:
       - /root/drawio/SSL:/SSL
       - /root/drawio/config/nginx.conf:/etc/nginx/nginx.conf

@@ -1,5 +1,4 @@
-version: '3'
-
+version: '3.5'
 volumes:
   files:
     driver: local
@@ -14,7 +13,7 @@ services:
   owncloud:
     container_name: owncloud
     image: owncloud/server:10.11
-    restart: always
+    restart: unless-stopped
     ports:
       - 180.1.1.100:80:8080
     depends_on:
@@ -42,7 +41,7 @@ services:
   db:
     container_name: owncloud_db
     image: webhippie/mariadb:latest
-    restart: always
+    restart: unless-stopped
     environment:
       - MARIADB_ROOT_PASSWORD=owncloud
       - MARIADB_USERNAME=owncloud
@@ -57,22 +56,17 @@ services:
   redis:
     container_name: owncloud_redis
     image: webhippie/redis:latest
-    restart: always
+    restart: unless-stopped
     environment:
       - REDIS_DATABASES=1
-    healthcheck:
-      test: ["CMD", "/usr/bin/healthcheck"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
     volumes:
       - redis:/var/lib/redis
   nginx:
     container_name: nginx_owncloud
     image: nginx
+    restart: unless-stopped
     volumes: 
       - /root/owncloud/SSL:/SSL
       - /root/owncloud/config/nginx.conf:/etc/nginx/nginx.conf
     ports:
       - 180.1.1.100:443:443
-   

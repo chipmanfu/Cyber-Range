@@ -3,6 +3,7 @@ services:
   hastebin:
     container_name: hastebin
     build: /root/pastebin/hastebin 
+    restart: unless-stopped
     environment:
       STORAGE_TYPE: redis
       STORAGE_HOST: hastebinredis
@@ -11,12 +12,14 @@ services:
   hastebinredis:
     container_name: hastebin_redis
     image: redis
+    restart: unless-stopped
     volumes:
         - ./data:/data
     entrypoint: redis-server --appendonly yes
   nginx:
     container_name: nginx_hastebin
     image: nginx
+    restart: unless-stopped
     volumes:
       - /root/pastebin/SSL:/SSL
       - /root/pastebin/config/nginx.conf:/etc/nginx/nginx.conf

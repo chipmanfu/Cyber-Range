@@ -8,6 +8,7 @@ services:
   bookstack:
     image: lscr.io/linuxserver/bookstack
     container_name: bookstack
+    restart: unless-stopped
     environment:
       - PUID=1000
       - PGID=1000
@@ -21,12 +22,12 @@ services:
       - webVol:/config
     ports:
       - 180.1.1.120:80:80
-    restart: unless-stopped
     depends_on: 
       - bookstack_db
   bookstack_db:
     image: lscr.io/linuxserver/mariadb
     container_name: bookstack_db
+    restart: unless-stopped
     environment:
       - PUID=1000
       - PGID=1000
@@ -37,10 +38,10 @@ services:
       - MYSQL_PASSWORD=bookstack
     volumes:
       - dbVol:/config
-    restart: unless-stopped
   nginx:
     container_name: nginx_bookstack
     image: nginx
+    restart: unless-stopped
     volumes:
       - /root/redbook/SSL:/SSL
       - /root/redbook/config/nginx.conf:/etc/nginx/nginx.conf
