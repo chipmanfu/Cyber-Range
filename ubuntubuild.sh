@@ -235,6 +235,7 @@ for IP in $nic2; do
   fi
   let count++
 done
+cp /etc/network/interfaces /etc/network/interfaces.org
 systemctl stop systemd-networkd.socket systemd-networkd networkd-dispatcher.service systemd-networkd-wait-online
 systemctl disable systemd-networkd.socket systemd-networkd networkd-dispatcher.service systemd-networkd-wait-online
 systemctl mask systemd-networkd.socket systemd-networkd networkd-dispatcher.service systemd-networkd-wait-online
