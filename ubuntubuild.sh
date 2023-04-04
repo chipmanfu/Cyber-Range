@@ -418,7 +418,10 @@ case $opt in
      sleep 2
      cp -r /home/user/Cyber-Range/webservices/drawio/* /root/drawio/
      cd /root/drawio
-     docker-compose up -d;;
+     docker-compose up -d
+     clear
+     echo -e "$green Populating Bookstack with Cyber Range documentation $default"
+     docker exec -i bookstack_db mysql -uroot -pbookstack bookstackapp < /home/user/Cyber-Range/webservices/defaultbookstack.sql;;
   6) clear
      echo -e "$green Setting up External SMTP Traffic Gen $default"
      sleep 2
