@@ -80,7 +80,7 @@ DNSMenu()
 GetDNSInfo()
 {
   # Get DNS information for the primary DNS server
-  ssh $rootDNS 'cd /etc/bind/OPFOR; grep -Eo "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" * | uniq | sed "s/db.//" | sed "s/\:/ /"' > /tmp/IPinfo
+  ssh $rootDNS 'cd /etc/bind/OPFOR; grep -Eo "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" * | grep -v 198.41.0.4 | uniq | sed "s/db.//" | sed "s/\:/ /"' > /tmp/IPinfo
   ssh $rootDNS 'cd /etc/bind/OPFOR; grep -Eo "OPFOR[-0-9A-Za-z]{0,40}" * | sed "s/db.//" | sed "s/\:/ /"' > /tmp/taginfo
   awk 'FNR==NR{a[$1]=$2 FS $3;next} $1 in a {print $0, a[$1]}' /tmp/taginfo /tmp/IPinfo | sort -k 3 > $CurDNSInfo
   usertags=`cat $CurDNSInfo | cut -d " " -f 3 | sort -u`
@@ -131,9 +131,9 @@ DeleteDNSMenu()
 {
   GetDNSInfo
   MenuBanner
-  echo -e "\n\t$yellow Note: DNS records are tagged with the username you created when you made them."  
-  echo -e "\tSelecting option 2 will delete ones you previously created using that username"
-  echo -e "\tWarning, if someone else created records using this same username,"
+  echo -e "\n\t$yellow Note: DNS records are tagged with the tag you created when you made them."  
+  echo -e "\tSelecting option 2 will delete ones you previously created using that tag"
+  echo -e "\tWarning, if someone else created records using this same tag,"
   echo -e "\tthey will get delete too\n"
   echo -e "\t$ltblue Which DNS records would you like to delete?"
   FormatOptions 1 "${red}All$white OPFOR DNS Records"

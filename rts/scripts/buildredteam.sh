@@ -219,9 +219,10 @@ MainMenu()
        else
          service="Payload Host"; setpayload=1; ServiceTagMenu
        fi;;
-    5) opt=5; setphish=1; srvtag="phish"; tmpsrvpath="/tmp/$srvtag"; totalipssel=1; 
+    5) opt=5; setphish=1; srvtag="phish"; tmpsrvpath="/tmp/$srvtag"; totalipssel=1; service="Phishing prep" 
        if [ -d $tmpsrvpath ]; then rm -r $tmpsrvpath; fi
        mkdir -p $tmpsrvpath
+       echo "$service" > $tmpsrvpath/ServiceInfo.txt
        CountryMenu;;
     6) opt=6; ContainerMenu;;
     b|B) MainMenu;;
@@ -875,6 +876,7 @@ ContainerMenu()
   Format2Options "1" "View Containers"
   Format2Options "2" "Delete Containers"
   Format2Options "3" "Start Saved Containers"
+  Format2Options "4" "Stop a Container"
   echo -ne "\n\t$ltblue Enter a Selection: $default"
   read answer
   case $answer in
@@ -883,6 +885,7 @@ ContainerMenu()
     1) copt=1; caction="$ltblue View Container Menu $default"; SelectServicesMenu;;
     2) copt=2; caction="$red Delete Container Menu $default"; SelectServicesMenu;;
     3) copt=3; caction="$green Start a Container Menu $default"; SelectServicesMenu;;
+    4) copt=4; caction="$green Stop a Container Menu $default"; SelectServicesMenu;;
     *) InputError; ContainerMenu;;
    esac
  }
@@ -923,6 +926,7 @@ SelectServicesMenu()
                1) ServiceDetailsMenu;;
                2) DeleteServicesMenu;;
                3) StartServiceMenu;;
+               4) StopServiceMenu;;
              esac
            else
              InputError
@@ -985,7 +989,13 @@ StartServiceMenu()
    iptables -F PREROUTING -t nat 
    ContainerMenu
 }
-
+StopServiceMenu()
+{
+   echo -e "\n\t$ltblue Stopping $srvel"
+   docker-compose -f $basesrvpath/$srvsel/docker-compose.yml down
+   ContainerMenu
+}
+   
 BuildDockerContainer()
 {
   if [[ $setnginx == 1 ]]; then
