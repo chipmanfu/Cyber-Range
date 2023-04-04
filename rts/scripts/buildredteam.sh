@@ -8,15 +8,15 @@
 tsbridge=1
 
 ##### ENVIRONMENT SPECIFIC VARIABLES ####
-intname="ens192"                         # Interface name for the "in-game" interface
-CAserver="180.1.1.51"                   # This is the IP for CA Server
+intname="ens34"
+CAserver="180.1.1.50"
 capass="toor"
 CAcrtpath="/root/ca/intermediate/certs"  # Need to get CA cert for Apache SSL server
-CAcert="int.simcert.crt.pem"             # Name of Intermediate CA cert, needed for payload host
+CAcert="int.globalcert.com.crt.pem"
 rootDNS="198.41.0.4"                     # This is the IP for the Root DNS server
 rootpass="toor"
 recursDNS="8.8.8.8"                      # This is the IP for the Recursive DNS Server
-defaultdecoysite="insureme.com"
+defaultdecoysite="redbook.com"
 
 #set initial variables for paths, files, and/or values
 IPlist="IPList.txt"
@@ -724,8 +724,14 @@ ManualDNS()
     echo -e "\n\t$ltblue Please set the Fully Qualified Domain Name you would like to use"
     echo -ne "\n\t$ltblue Here: $default"
     read DNSin
- #   regexfqn="(?=^.{5,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.?)+\.(?:[a-z]{2,})$)"
-    regexfqn="(?=^.{5,254}$)(^(?:(?\d+\.)[a-zA-Z0-9_\-]{1,63}\.?)+\.(?:[a-z]{2,})$)"
+    if [[ $DNSin == "q" || $DNSin == "Q" ]]; then
+      exit 0
+    fi
+    if [[ $DNSin == "b" || $DNSin == "B" ]]; then
+      AddDNSMenu
+      exit 1
+    fi
+    regexfqn="(?=^.{5,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.?)+\.(?:[a-z]{2,})$)"
     if [[ `echo $DNSin | grep -P $regexfqn` ]]; then
     ## Check if dns is already registered
       if grep -q "$DNSin" $CurDNSInfo; then
@@ -737,6 +743,7 @@ ManualDNS()
       #Add new FQDN
       lowercaseDNS=`echo $DNSin | tr '[:upper:]' '[:lower:]'`
       echo "$lowercaseDNS,$iplist" >> $TempDNSconf
+      cp $TempDNSconf $tmpsrvpath/$DNSlist
       DNSTagMenu
     else
       echo "$DNSin is not a valid FQDN, please try again."; sleep 2
@@ -1516,13 +1523,13 @@ BuildIPs()
     gwyip=`echo $p | cut -d, -f2`
     netid=`ipcalc $addrandcidr | grep ^Network | awk '{print$2}'`
     ifconfig $intnamein $addrandcidr   # adds IP to running system
-    ip route add $netid dev $intnamein src $addrin table $srvtag # adds route using new rt_table
+    ip route add $netid dev $intnamein src $addrin table $srvtag > /dev/null 2>&1 # adds route using new rt_table
     echo "auto $intnamein" >> $tempintfile                    # adds IP to interface config
     echo "iface $intnamein inet static" >> $tempintfile
     echo "  address $addrandcidr" >> $tempintfile
     echo "  post-up ip route add $netid dev $intnamein src $addrin table $srvtag" >> $tempintfile
     if [[ $pass -eq 1 ]]; then
-      ip route add default via $gwyip dev $intnamein table $srvtag
+      ip route add default via $gwyip dev $intnamein table $srvtag > /dev/null 2>&1
       echo "  post-up ip route add default via $gwyip dev $intname table $srvtag" >> $tempintfile
     fi
     ip rule add from $addrin/32 table $srvtag
