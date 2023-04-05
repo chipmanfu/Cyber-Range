@@ -421,7 +421,10 @@ case $opt in
      docker-compose up -d
      clear
      echo -e "$green Populating Bookstack with Cyber Range documentation $default"
-     docker exec -i bookstack_db mysql -uroot -pbookstack bookstackapp < /home/user/Cyber-Range/webservices/defaultbookstack.sql;;
+     cd /home/user/Cyber-Range/webservices
+     docker exec -i bookstack_db mysql -uroot -pbookstack bookstackapp < defaultbookstack.sql
+     tar -xvzf bookstackimages.tar.gz
+     docker cp images bookstack:/app/www/public/uploads;;
   6) clear
      echo -e "$green Setting up External SMTP Traffic Gen $default"
      sleep 2
