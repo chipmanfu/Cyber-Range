@@ -1,0 +1,33 @@
+//Example Zone reference 
+//zone "example.com." IN {
+//	type master;
+//	file "TRAFFIC/db.example.com";
+//	allow-query { any; };
+//	allow-update { any; };
+//};
+// CA server domain
+zone "globalcert.com." IN {
+	type master;
+	file "RANGE/db.globalcert.com";
+	allow-query { any; };
+	allow-update { none; };
+};
+// Default Web service systems
+zone "pastebin.com." IN {
+	type master;
+	file "RANGE/db.pastebin.com";
+	allow-query { any; };
+	allow-update { none; };
+};
+zone "dropbox.com." IN {
+	type master;
+	file "RANGE/db.dropbox.com";
+	allow-query { any; };
+	allow-update { none; };
+};
+zone "redbook.com." IN {
+	type master;
+	file "RANGE/db.redbook.com";
+	allow-query { any; };
+	allow-update { none; };
+};

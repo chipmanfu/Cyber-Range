@@ -1,7 +1,0 @@
-//Example Zone reference 
-//zone "example.com." IN {
-//	type master;
-//	file "Range/db.example.com";
-//	allow-query { any; };
-//	allow-update { any; };
-//};

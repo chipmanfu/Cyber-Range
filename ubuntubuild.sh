@@ -260,18 +260,14 @@ case $opt in
      apt update
      apt install -y bind9 bind9utils bind9-doc
      chmod 775 /etc/bind
-     mkdir -p /etc/bind/RANGE
-     mkdir -p /etc/bind/OPFOR
-     mkdir -p /etc/bind/TRAFFIC
-     cp -r rootdns/blackhole /etc/bind
+     cp -r rootdns/bind/* /etc/bind
      cp -r rootdns/scripts /root/
-     cp rootdns/db.* /etc/bind/RANGE
-     cp rootdns/named.conf.* /etc/bind
      sed -i '/^OPTIONS/d' /etc/default/named
      echo "OPTIONS=\"-u bind -4\"" >> /etc/default/named
      echo "include \"/etc/bind/named.conf.OPFOR\";" >> /etc/bind/named.conf
      echo "include \"/etc/bind/named.conf.RANGE\";" >> /etc/bind/named.conf
      echo "include \"/etc/bind/named.conf.TRAFFIC\";" >> /etc/bind/named.conf
+     echo "include \"/etc/bind/blackhole/rangism.zones\";" >> /etc/bind/named.conf
      echo "include \"/etc/bind/rndc.key\";" >> /etc/bind/named.conf
      service bind9 restart;;
   3) clear; echo -e "$green Installing $svr Specific Applications $default";

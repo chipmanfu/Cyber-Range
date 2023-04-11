@@ -1,0 +1,38 @@
+//Example Zone reference 
+//zone "example.com." IN {
+//	type master;
+//	file "TRAFFIC/db.example.com";
+//	allow-query { any; };
+//	allow-update { any; };
+//};
+// SMTP External Traffic Gen
+zone "gmail.com." IN {
+	type master;
+	file "TRAFFIC/db.gmail.com";
+	allow-query { any; };
+	allow-update { none; };
+};
+zone "msn.com." IN {
+	type master;
+	file "TRAFFIC/db.msn.com";
+	allow-query { any; };
+	allow-update { none; };
+};
+zone "salesforce.net." IN {
+	type master;
+	file "TRAFFIC/db.salesforce.net";
+	allow-query { any; };
+	allow-update { none; };
+};
+zone "linkedln.com." IN {
+	type master;
+	file "TRAFFIC/db.linkedln.com";
+	allow-query { any; };
+	allow-update { none; };
+};
+zone "facebook.com." IN {
+	type master;
+	file "TRAFFIC/db.facebook.com";
+	allow-query { any; };
+	allow-update { none; };
+};
