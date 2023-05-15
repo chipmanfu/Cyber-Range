@@ -1,0 +1,9 @@
+;Traffic-WebHost
+$TTL	86400
+@	IN	SOA	@	ns1.researchgate.net. 42 3H 15M 1W 1D
+@	IN	NS		ns1.researchgate.net.
+@	IN	MX	10	researchgate.net.
+@	IN	A		104.17.33.105
+mail	IN	A		104.17.33.105
+www	IN	A		104.17.33.105
+ns1	IN	A		198.41.0.4

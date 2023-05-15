@@ -1,0 +1,9 @@
+;Traffic-WebHost
+$TTL	86400
+@	IN	SOA	@	ns1.wikipedia.org. 42 3H 15M 1W 1D
+@	IN	NS		ns1.wikipedia.org.
+@	IN	MX	10	wikipedia.org.
+@	IN	A		208.80.154.224
+mail	IN	A		208.80.154.224
+www	IN	A		208.80.154.224
+ns1	IN	A		198.41.0.4

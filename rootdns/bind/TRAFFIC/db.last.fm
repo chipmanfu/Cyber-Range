@@ -1,0 +1,9 @@
+;Traffic-WebHost
+$TTL	86400
+@	IN	SOA	@	ns1.last.fm. 42 3H 15M 1W 1D
+@	IN	NS		ns1.last.fm.
+@	IN	MX	10	last.fm.
+@	IN	A		146.75.81.188
+mail	IN	A		146.75.81.188
+www	IN	A		146.75.81.188
+ns1	IN	A		198.41.0.4

@@ -1,0 +1,9 @@
+;Traffic-WebHost
+$TTL	86400
+@	IN	SOA	@	ns1.loc.gov. 42 3H 15M 1W 1D
+@	IN	NS		ns1.loc.gov.
+@	IN	MX	10	loc.gov.
+@	IN	A		104.16.55.16
+mail	IN	A		104.16.55.16
+www	IN	A		104.16.55.16
+ns1	IN	A		198.41.0.4

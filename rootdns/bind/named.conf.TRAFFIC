@@ -36,3 +36,789 @@ zone "facebook.com." IN {
 	allow-query { any; };
 	allow-update { none; };
 };
+zone "aarp.org." IN {
+    type master;
+    file "TRAFFIC/db.aarp.org";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "abebooks.com." IN {
+    type master;
+    file "TRAFFIC/db.abebooks.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "addthis.com." IN {
+    type master;
+    file "TRAFFIC/db.addthis.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "adobe.com." IN {
+    type master;
+    file "TRAFFIC/db.adobe.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "airbnb.com." IN {
+    type master;
+    file "TRAFFIC/db.airbnb.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "allmusic.com." IN {
+    type master;
+    file "TRAFFIC/db.allmusic.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "android.com." IN {
+    type master;
+    file "TRAFFIC/db.android.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "apple.com." IN {
+    type master;
+    file "TRAFFIC/db.apple.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "archives.gov." IN {
+    type master;
+    file "TRAFFIC/db.archives.gov";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "bandcamp.com." IN {
+    type master;
+    file "TRAFFIC/db.bandcamp.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "bartleby.com." IN {
+    type master;
+    file "TRAFFIC/db.bartleby.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "bbc.com." IN {
+    type master;
+    file "TRAFFIC/db.bbc.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "billboard.com." IN {
+    type master;
+    file "TRAFFIC/db.billboard.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "bleacherreport.com." IN {
+    type master;
+    file "TRAFFIC/db.bleacherreport.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "bobvila.com." IN {
+    type master;
+    file "TRAFFIC/db.bobvila.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "booking.com." IN {
+    type master;
+    file "TRAFFIC/db.booking.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "businesswire.com." IN {
+    type master;
+    file "TRAFFIC/db.businesswire.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "buzzfeed.com." IN {
+    type master;
+    file "TRAFFIC/db.buzzfeed.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "camelbak.com." IN {
+    type master;
+    file "TRAFFIC/db.camelbak.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "cancer.gov." IN {
+    type master;
+    file "TRAFFIC/db.cancer.gov";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "carfax.com." IN {
+    type master;
+    file "TRAFFIC/db.carfax.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "cargurus.com." IN {
+    type master;
+    file "TRAFFIC/db.cargurus.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "cars.com." IN {
+    type master;
+    file "TRAFFIC/db.cars.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "cbsnews.com." IN {
+    type master;
+    file "TRAFFIC/db.cbsnews.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "cnbc.com." IN {
+    type master;
+    file "TRAFFIC/db.cnbc.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "cnn.com." IN {
+    type master;
+    file "TRAFFIC/db.cnn.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "columbia.edu." IN {
+    type master;
+    file "TRAFFIC/db.columbia.edu";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "cornell.edu." IN {
+    type master;
+    file "TRAFFIC/db.cornell.edu";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "cvs.com." IN {
+    type master;
+    file "TRAFFIC/db.cvs.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "dailymotion.com." IN {
+    type master;
+    file "TRAFFIC/db.dailymotion.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "deadline.com." IN {
+    type master;
+    file "TRAFFIC/db.deadline.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "denofgeek.com." IN {
+    type master;
+    file "TRAFFIC/db.denofgeek.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "discgolfscene.com." IN {
+    type master;
+    file "TRAFFIC/db.discgolfscene.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "discogs.com." IN {
+    type master;
+    file "TRAFFIC/db.discogs.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "dreamstime.com." IN {
+    type master;
+    file "TRAFFIC/db.dreamstime.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "drugs.com." IN {
+    type master;
+    file "TRAFFIC/db.drugs.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "ebay.com." IN {
+    type master;
+    file "TRAFFIC/db.ebay.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "engadget.com." IN {
+    type master;
+    file "TRAFFIC/db.engadget.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "espn.com." IN {
+    type master;
+    file "TRAFFIC/db.espn.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "etsy.com." IN {
+    type master;
+    file "TRAFFIC/db.etsy.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "familyhandyman.com." IN {
+    type master;
+    file "TRAFFIC/db.familyhandyman.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "fandango.com." IN {
+    type master;
+    file "TRAFFIC/db.fandango.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "fandom.com." IN {
+    type master;
+    file "TRAFFIC/db.fandom.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "fda.gov." IN {
+    type master;
+    file "TRAFFIC/db.fda.gov";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "foodnetwork.com." IN {
+    type master;
+    file "TRAFFIC/db.foodnetwork.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "forbes.com." IN {
+    type master;
+    file "TRAFFIC/db.forbes.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "fortune.com." IN {
+    type master;
+    file "TRAFFIC/db.fortune.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "foursquare.com." IN {
+    type master;
+    file "TRAFFIC/db.foursquare.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "foxnews.com." IN {
+    type master;
+    file "TRAFFIC/db.foxnews.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "gamespot.com." IN {
+    type master;
+    file "TRAFFIC/db.gamespot.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "glassdoor.com." IN {
+    type master;
+    file "TRAFFIC/db.glassdoor.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "gofundme.com." IN {
+    type master;
+    file "TRAFFIC/db.gofundme.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "goodreads.com." IN {
+    type master;
+    file "TRAFFIC/db.goodreads.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "harvard.edu." IN {
+    type master;
+    file "TRAFFIC/db.harvard.edu";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "hgtv.com." IN {
+    type master;
+    file "TRAFFIC/db.hgtv.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "hopkinsmedicine.com." IN {
+    type master;
+    file "TRAFFIC/db.hopkinsmedicine.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "howstuffworks.com." IN {
+    type master;
+    file "TRAFFIC/db.howstuffworks.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "ign.com." IN {
+    type master;
+    file "TRAFFIC/db.ign.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "imdb.com." IN {
+    type master;
+    file "TRAFFIC/db.imdb.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "indeed.com." IN {
+    type master;
+    file "TRAFFIC/db.indeed.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "indiewire.com." IN {
+    type master;
+    file "TRAFFIC/db.indiewire.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "infosecurity-magazine.com." IN {
+    type master;
+    file "TRAFFIC/db.infosecurity-magazine.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "instructables.com." IN {
+    type master;
+    file "TRAFFIC/db.instructables.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "kayak.com." IN {
+    type master;
+    file "TRAFFIC/db.kayak.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "kohls.com." IN {
+    type master;
+    file "TRAFFIC/db.kohls.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "krebsonsecurity.com." IN {
+    type master;
+    file "TRAFFIC/db.krebsonsecurity.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "last.fm." IN {
+    type master;
+    file "TRAFFIC/db.last.fm";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "lg.com." IN {
+    type master;
+    file "TRAFFIC/db.lg.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "lifehack.org." IN {
+    type master;
+    file "TRAFFIC/db.lifehack.org";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "livemint.com." IN {
+    type master;
+    file "TRAFFIC/db.livemint.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "livestrong.com." IN {
+    type master;
+    file "TRAFFIC/db.livestrong.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "loc.gov." IN {
+    type master;
+    file "TRAFFIC/db.loc.gov";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "lonelyplanet.com." IN {
+    type master;
+    file "TRAFFIC/db.lonelyplanet.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "mashable.com." IN {
+    type master;
+    file "TRAFFIC/db.mashable.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "mayoclinic.org." IN {
+    type master;
+    file "TRAFFIC/db.mayoclinic.org";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "mit.edu." IN {
+    type master;
+    file "TRAFFIC/db.mit.edu";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "motortrend.com." IN {
+    type master;
+    file "TRAFFIC/db.motortrend.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "msn.com." IN {
+    type master;
+    file "TRAFFIC/db.msn.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "nasa.gov." IN {
+    type master;
+    file "TRAFFIC/db.nasa.gov";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "nationalgeographic.com." IN {
+    type master;
+    file "TRAFFIC/db.nationalgeographic.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "nature.com." IN {
+    type master;
+    file "TRAFFIC/db.nature.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "ndtv.com." IN {
+    type master;
+    file "TRAFFIC/db.ndtv.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "netvibes.com." IN {
+    type master;
+    file "TRAFFIC/db.netvibes.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "nih.gov." IN {
+    type master;
+    file "TRAFFIC/db.nih.gov";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "npr.org." IN {
+    type master;
+    file "TRAFFIC/db.npr.org";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "nps.gov." IN {
+    type master;
+    file "TRAFFIC/db.nps.gov";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "osu.edu." IN {
+    type master;
+    file "TRAFFIC/db.osu.edu";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "pcmag.com." IN {
+    type master;
+    file "TRAFFIC/db.pcmag.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "pdga.com." IN {
+    type master;
+    file "TRAFFIC/db.pdga.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "people.com." IN {
+    type master;
+    file "TRAFFIC/db.people.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "picclick.com." IN {
+    type master;
+    file "TRAFFIC/db.picclick.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "pitchbook.com." IN {
+    type master;
+    file "TRAFFIC/db.pitchbook.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "poshmark.com." IN {
+    type master;
+    file "TRAFFIC/db.poshmark.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "redbull.com." IN {
+    type master;
+    file "TRAFFIC/db.redbull.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "reddit.com." IN {
+    type master;
+    file "TRAFFIC/db.reddit.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "redfin.com." IN {
+    type master;
+    file "TRAFFIC/db.redfin.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "remax.com." IN {
+    type master;
+    file "TRAFFIC/db.remax.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "researchgate.net." IN {
+    type master;
+    file "TRAFFIC/db.researchgate.net";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "rottentomatoes.com." IN {
+    type master;
+    file "TRAFFIC/db.rottentomatoes.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "salary.com." IN {
+    type master;
+    file "TRAFFIC/db.salary.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "scribd.com." IN {
+    type master;
+    file "TRAFFIC/db.scribd.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "sears.com." IN {
+    type master;
+    file "TRAFFIC/db.sears.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "shazam.com." IN {
+    type master;
+    file "TRAFFIC/db.shazam.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "shopify.com." IN {
+    type master;
+    file "TRAFFIC/db.shopify.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "si.edu." IN {
+    type master;
+    file "TRAFFIC/db.si.edu";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "smithsonianmag.com." IN {
+    type master;
+    file "TRAFFIC/db.smithsonianmag.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "songkick.com." IN {
+    type master;
+    file "TRAFFIC/db.songkick.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "spacex.com." IN {
+    type master;
+    file "TRAFFIC/db.spacex.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "stackoverflow.com." IN {
+    type master;
+    file "TRAFFIC/db.stackoverflow.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "starbucks.com." IN {
+    type master;
+    file "TRAFFIC/db.starbucks.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "superpages.com." IN {
+    type master;
+    file "TRAFFIC/db.superpages.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "superuser.com." IN {
+    type master;
+    file "TRAFFIC/db.superuser.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "tacticalgear.com." IN {
+    type master;
+    file "TRAFFIC/db.tacticalgear.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "techtarget.com." IN {
+    type master;
+    file "TRAFFIC/db.techtarget.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "techworm.net." IN {
+    type master;
+    file "TRAFFIC/db.techworm.net";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "ted.com." IN {
+    type master;
+    file "TRAFFIC/db.ted.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "testbook.com." IN {
+    type master;
+    file "TRAFFIC/db.testbook.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "themoviedb.org." IN {
+    type master;
+    file "TRAFFIC/db.themoviedb.org";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "tripadvisor.com." IN {
+    type master;
+    file "TRAFFIC/db.tripadvisor.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "umich.edu." IN {
+    type master;
+    file "TRAFFIC/db.umich.edu";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "umn.edu." IN {
+    type master;
+    file "TRAFFIC/db.umn.edu";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "unicef.org." IN {
+    type master;
+    file "TRAFFIC/db.unicef.org";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "untappd.com." IN {
+    type master;
+    file "TRAFFIC/db.untappd.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "vice.com." IN {
+    type master;
+    file "TRAFFIC/db.vice.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "weather.com." IN {
+    type master;
+    file "TRAFFIC/db.weather.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "wikipedia.org." IN {
+    type master;
+    file "TRAFFIC/db.wikipedia.org";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "wordhippo.com." IN {
+    type master;
+    file "TRAFFIC/db.wordhippo.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "yeti.com." IN {
+    type master;
+    file "TRAFFIC/db.yeti.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "zillow.com." IN {
+    type master;
+    file "TRAFFIC/db.zillow.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "ziprecruiter.com." IN {
+    type master;
+    file "TRAFFIC/db.ziprecruiter.com";
+    allow-query { any; };
+    allow-update { none; };
+};
+zone "zoominfo.com." IN {
+    type master;
+    file "TRAFFIC/db.zoominfo.com";
+    allow-query { any; };
+    allow-update { none; };
+};
