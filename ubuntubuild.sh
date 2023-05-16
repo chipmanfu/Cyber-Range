@@ -230,7 +230,7 @@ BuildMenu()
 	  4) srv="Red Team Server"; opt=4; needdocker=y;;
 	  5) srv="Web Services"; opt=5; needdocker=y;;
 	  6) srv="Traffic Gen"; opt=6; needdocker=y;;
-	  7) srv="Web Traffic Host"; opt=7; needdocker=y;;
+	  7) srv="Web Traffic Host"; opt=7; needdocker=n;;
 	  q|Q) exit;;
 	  *) echo -e "\n\t\t$red Invalid Selection, Please try again$default"; sleep 2; BuildMenu;;
   esac
@@ -559,4 +559,8 @@ case $opt in
      cp -r /home/user/Cyber-Range/trafficgen/* /root/
      cd /root
      docker build -t emailgen .;;
+  7) clear 
+     echo -e "$grenn Setting up Traffic Web Host server $default"
+     sleep 2;;
+     
 esac
