@@ -72,10 +72,13 @@ if [[ $random == "yes" ]]; then
   ST=`echo $citystate | cut -d, -f2`
    L=`echo $citystate | cut -d, -f1`
   companytype=`shuf -n 1 /root/scripts/companytype.txt`
-  TLD=`echo $domain | awk -F. '{print $(NF-1)}'`
-   O="$TLD $companytype"
+  TLD=`echo $domain | awk -F. '{print $(NF-1)"."$(NF)}'`
+  TLD2=`echo $domain | awk -F. '{print $(NF-1)}'`
+   O="$TLD2 $companytype"
    alias=$TLD
-   CN=$domain
+   CN=$TLD
+   DNS1="www.$TLD"
+   DNS2=$TLD
 else 
   if [[ $C != "" ]]; then
     if [[ ${#C} != 2 ]] || [[ "$C" =~ [^a-zA-Z] ]]; then
