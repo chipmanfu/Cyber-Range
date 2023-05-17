@@ -67,138 +67,6 @@ trafnic2="92.107.127.12/24
 trafgw="92.107.127.1"
 # Web host
 webhostnic1="dhcp"
-webhostnic2="13.107.238.51/24
-13.249.85.5/24
-13.249.85.21/24
-13.249.85.22/24
-13.249.85.35/24
-13.249.85.37/24
-13.249.85.39/24
-13.249.85.47/24
-13.249.85.69/24
-13.249.85.79/24
-13.249.85.83/24
-13.249.85.87/24
-13.249.85.99/24
-13.249.85.103/24
-13.249.85.105/24
-13.249.85.107/24
-13.249.85.108/24
-13.249.85.109/24
-13.249.85.113/24
-13.249.85.117/24
-13.249.85.118/24
-13.249.89.64/24
-23.2.91.170/24
-23.8.79.116/24
-23.11.224.121/24
-23.11.224.205/24
-23.11.225.24/24
-23.11.225.25/24
-23.11.225.74/24
-23.32.228.219/24
-23.34.76.129/24
-23.34.77.116/24
-23.35.131.241/24
-23.35.132.153/24
-23.35.137.227/24
-23.48.99.84/24
-23.78.8.22/24
-23.78.9.97/24
-23.194.146.79/24
-23.194.148.28/24
-23.194.148.29/24
-23.194.154.101/24
-23.194.169.4/24
-23.213.203.8/24
-23.213.203.90/24
-23.219.48.199/24
-23.220.144.142/24
-23.220.144.148/24
-23.220.144.152/24
-34.110.234.203/24
-35.244.145.245/24
-45.78.159.143/24
-54.176.32.72/24
-54.239.26.220/24
-76.13.32.141/24
-96.17.52.124/24
-96.17.52.160/24
-96.17.53.167/24
-96.17.79.248/24
-104.16.55.16/24
-104.16.115.47/24
-104.16.168.82/24
-104.16.178.190/24
-104.17.6.17/24
-104.17.33.105/24
-104.17.91.51/24
-104.17.101.99/24
-104.18.13.9/24
-104.18.13.159/24
-104.18.28.109/24
-104.22.6.9/24
-104.25.108.109/24
-104.26.5.249/24
-104.26.13.22/24
-104.26.15.95/24
-104.78.231.230/24
-104.98.77.89/24
-104.98.88.228/24
-128.59.105.24/24
-128.220.192.230/24
-130.211.21.62/24
-130.211.45.45/24
-134.84.223.68/24
-141.211.243.251/24
-142.250.190.142/24
-146.75.77.188/24
-146.75.81.188/24
-151.101.2.132/24
-151.101.65.69/24
-151.101.129.69/24
-151.101.192.81/24
-151.101.192.95/24
-151.101.193.5/24
-151.101.193.29/24
-151.101.193.55/24
-151.101.193.80/24
-151.101.193.105/24
-151.101.193.132/24
-151.101.193.135/24
-151.101.193.140/24
-151.101.194.55/24
-151.101.194.114/24
-151.101.194.130/24
-151.101.194.131/24
-151.101.194.132/24
-151.101.194.133/24
-151.101.194.134/24
-151.101.194.135/24
-151.101.194.137/24
-151.101.194.152/24
-151.101.194.217/24
-151.101.195.5/24
-151.138.150.150/24
-160.111.244.48/24
-162.159.130.67/24
-169.62.154.245/24
-172.66.40.249/24
-172.66.43.154/24
-173.231.200.231/24
-185.146.173.20/24
-192.0.66.2/24
-192.0.66.32/24
-192.0.66.69/24
-192.0.66.88/24
-193.189.143.34/24
-198.54.201.90/24
-199.232.212.193/24
-199.232.212.194/24
-204.2.48.200/24
-204.79.197.203/24
-208.81.154.224/24"
-webhostgw="13.107.238.1"
 
 # Color codes for menu
 white="\e[1;37m"
@@ -560,7 +428,73 @@ case $opt in
      cd /root
      docker build -t emailgen .;;
   7) clear 
-     echo -e "$grenn Setting up Traffic Web Host server $default"
-     sleep 2;;
-     
+     echo -e "$green Setting up Traffic Web Host server $default"
+     sleep 2
+     apt install -y apache2
+     a2enmod ssl
+     echo -e "$green Downloading websites now, this will take a bit, approx 1,1GB download. $default"
+     wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1__Z5LllzuOA_HnVA6YsC47toHsmEo99d' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1__Z5LllzuOA_HnVA6YsC47toHsmEo99d" -O trafficsites.tar.gz && rm -rf /tmp/cookies.txt
+     echo -e "$green Download complete, extracting sites. $default"
+     sleep 2
+     tar -zxvf trafficsites.tar.gz 
+     cd sites
+     echo -e "$green Moving websites to /var/www/html. $default"
+     mv www.* /var/www/html/
+     echo -e "$green Configuring Apaching and setting IPs. $default"
+     httpconf="TG_HTTP.conf"
+     httpsconf="TG_HTTPS.conf"
+     echo "" > $httpconf
+     echo "" > $httpsconf
+     count=0
+     for x in `cat websites.txt`
+     do
+       # Seperate out list
+       domain=`echo $x | cut -d, -f1`
+       ipcdir=`echo $x | cut -d, -f2`
+       ip=`echo $ipcdir | cut -d/ -f1`
+       tld=`echo $domain | sed 's/www.//g'`
+       #configure IP
+       if [[ $count == 0 ]]; then
+         echo -e "\nauto $gnic\niface $gnic inet static\n\taddress $ipcidr" >> /etc/network/interfaces
+         first3octets=`echo $ip | cut -d. -f1,2,3`
+         gw="$first3octets.1"
+         echo -e "\tgateway $gw" >> /etc/network/interfaces
+         count=1
+       else
+         echo -e "\nauto $gnic:$count\niface $gnic:$count inet static\n\taddress $ip" >> /etc/network/interfaces
+         let count++
+       fi
+       # configure HTTP
+       echo "<VirtualHost *:80>" >> $httpconf
+       echo "    ServerAdmin webmaster@$tld" >> $httpconf
+       echo "    ServerName $tld" >> $httpconf
+       echo "    ServerAlias $domain" >> $httpconf
+       echo "    ServerAlias $ip" >> $httpconf
+       echo "    DocumentRoot /var/www/html/$domain" >> $httpconf
+       echo "    ErrorLog \${APACHE_LOG_DIR}/error.log" >> $httpconf
+       echo "    CustomLog \${APACHE_LOG_DIR}/access.log combined" >> $httpconf
+       echo "</VirtualHost>" >> $httpconf
+       # configure HTTPS
+       echo "<VirtualHost *:443>" >> $httpsconf
+       echo "    ServerName \"$tld\"" >> $httpsconf
+       echo "    ServerAlias \"$domain\"" >> $httpsconf
+       echo "    ServerAlias $ip" >> $httpsconf
+       echo "    ServerAdmin webmaster@$tld" >> $httpsconf
+       echo "    DocumentRoot /var/www/html/$domain" >> $httpsconf
+       echo "    ErrorLog \${APACHE_LOG_DIR}/error.log" >> $httpsconf
+       echo "    CustomLog \${APACHE_LOG_DIR}/access.log combined" >> $httpsconf
+       echo "    SSLEngine on" >> $httpsconf
+       echo "    SSLCertificateFile /etc/ssl/certs/$tld.crt" >> $httpsconf
+       echo "    SSLCertificateKeyFile /etc/ssl/private/$tld.key" >> $httpsconf
+       echo "</VirtualHost>" >> $httpsconf
+       # Get SSL Cert
+       sshpass -p toor ssh 180.1.1.50: "/root/scripts/certmaker.sh -d $tld -q -r"
+       sshpass -p toor scp 180.1.1.50:/var/www/html/$tld.crt /etc/ssl/certs/
+       sshpass -p toor scp 180.1.1.50:/var/www/html/$tld.key /etc/ssl/private/
+     done
+     mv $httpconf /etc/apache2/sites-available/
+     mv $httpsconf /etc/apache2/sites-available/
+     a2ensite $httpconf
+     a2ensite $httpsconf
+     systemctl reload apache2;;
 esac
