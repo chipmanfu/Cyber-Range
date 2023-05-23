@@ -417,7 +417,7 @@ case $opt in
      docker-compose up -d
      clear
      echo -e "$green Populating Bookstack with Cyber Range documentation $default"
-     cd /home/user/Cyber-Range/webservices
+     cd /root/redbook
      docker exec -i bookstack_db mysql -uroot -pbookstack bookstackapp < defaultbookstack.sql
      tar -xvzf bookstackimages.tar.gz
      docker cp images bookstack:/app/www/public/uploads;;
