@@ -448,6 +448,7 @@ case $opt in
      echo "" > $httpconf
      echo "" > $httpsconf
      count=0
+     sshpass -p toor ssh -o StrictHostKeyChecking=no 180.1.1.50 'echo prepping CA connection'
      for x in `cat websites.txt`
      do
        # Seperate out list
