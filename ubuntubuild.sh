@@ -490,7 +490,7 @@ case $opt in
        echo "    SSLCertificateKeyFile /etc/ssl/private/$tld.key" >> $httpsconf
        echo "</VirtualHost>" >> $httpsconf
        # Get SSL Cert
-       sshpass -p toor ssh 180.1.1.50: "/root/scripts/certmaker.sh -d $tld -q -r"
+       sshpass -p toor ssh 180.1.1.50 "/root/scripts/certmaker.sh -d $tld -q -r"
        sshpass -p toor scp 180.1.1.50:/var/www/html/$tld.crt /etc/ssl/certs/
        sshpass -p toor scp 180.1.1.50:/var/www/html/$tld.key /etc/ssl/private/
      done
