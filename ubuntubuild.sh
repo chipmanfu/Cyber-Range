@@ -430,6 +430,7 @@ case $opt in
   7) clear 
      echo -e "$green Setting up Traffic Web Host server $default"
      sleep 2
+     apt update
      apt install -y apache2
      a2enmod ssl
      echo -e "$green Downloading websites now, this will take a bit, approx 1,1GB download. $default"
