@@ -498,12 +498,6 @@ zone "motortrend.com." IN {
     allow-query { any; };
     allow-update { none; };
 };
-zone "msn.com." IN {
-    type master;
-    file "TRAFFIC/db.msn.com";
-    allow-query { any; };
-    allow-update { none; };
-};
 zone "nasa.gov." IN {
     type master;
     file "TRAFFIC/db.nasa.gov";
