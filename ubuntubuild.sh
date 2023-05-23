@@ -67,7 +67,8 @@ trafnic2="92.107.127.12/24
 trafgw="92.107.127.1"
 # Web host
 webhostnic1="dhcp"
-
+webhostnic2="92.107.127.100/24"
+webhostgw="92.107.127.1"
 # Color codes for menu
 white="\e[1;37m"
 ltblue="\e[1;36m"
@@ -451,7 +452,7 @@ case $opt in
      do
        # Seperate out list
        domain=`echo $x | cut -d, -f1`
-       ipcdir=`echo $x | cut -d, -f2`
+       ipcidr=`echo $x | cut -d, -f2`
        ip=`echo $ipcdir | cut -d/ -f1`
        tld=`echo $domain | sed 's/www.//g'`
        #configure IP
@@ -462,7 +463,7 @@ case $opt in
          echo -e "\tgateway $gw" >> /etc/network/interfaces
          count=1
        else
-         echo -e "\nauto $gnic:$count\niface $gnic:$count inet static\n\taddress $ip" >> /etc/network/interfaces
+         echo -e "\nauto $gnic:$count\niface $gnic:$count inet static\n\taddress $ipcidr" >> /etc/network/interfaces
          let count++
        fi
        # configure HTTP
@@ -497,5 +498,6 @@ case $opt in
      mv $httpsconf /etc/apache2/sites-available/
      a2ensite $httpconf
      a2ensite $httpsconf
+     service networking restart
      systemctl reload apache2;;
 esac
