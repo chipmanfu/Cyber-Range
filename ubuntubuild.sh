@@ -449,6 +449,7 @@ case $opt in
      echo "" > $httpsconf
      count=0
      sshpass -p toor ssh -o StrictHostKeyChecking=no 180.1.1.50 'echo prepping CA connection'
+     echo -e "auto lo\niface lo inet loopback\n\nauto $anic\niface $anic inet dhcp" > /etc/network/interfaces
      for x in `cat websites.txt`
      do
        # Seperate out list
@@ -504,6 +505,8 @@ case $opt in
      mv $httpsconf /etc/apache2/sites-available/
      a2ensite $httpconf
      a2ensite $httpsconf
+     ip addr flush $anic
+     ip addr flush $gnic
      service networking restart
      systemctl reload apache2;;
 esac
