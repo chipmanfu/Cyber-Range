@@ -208,7 +208,7 @@ case $opt in
   6) echo -e "$green Setting interfaces for the Traffic Gen Server $default"
      nic1=$trafnic1; nic2=$trafnic2; gw=$trafgw;;
   7) echo -e "$green Setting interfaces for the Web Traffic Host Server $default"
-     nic1=$webhostnic1; nic2=$webhostnic2;;
+     nic1=$webhostnic1; nic2=$webhostnic2; gw=$webhostgw;;
 esac
 
 echo -e "auto lo\niface lo inet loopback" > /etc/network/interfaces
