@@ -453,18 +453,23 @@ case $opt in
      do
        # Seperate out list
        domain=`echo $x | cut -d, -f1`
-       ipcidr=`echo $x | cut -d, -f2`
-       ip=`echo $ipcdir | cut -d/ -f1`
+       ip=`echo $x | cut -d, -f2`
+       if echo $ip | grep -q / 
+       then 
+         cidr=`echo $ip | cut -d/ -f2`
+       else # assume a /24
+         cidr="24"
+       fi
        tld=`echo $domain | sed 's/www.//g'`
        #configure IP
        if [[ $count == 0 ]]; then
-         echo -e "\nauto $gnic\niface $gnic inet static\n\taddress $ipcidr" >> /etc/network/interfaces
+         echo -e "\nauto $gnic\niface $gnic inet static\n\taddress $ip/$cidr" >> /etc/network/interfaces
          first3octets=`echo $ip | cut -d. -f1,2,3`
          gw="$first3octets.1"
          echo -e "\tgateway $gw" >> /etc/network/interfaces
          count=1
        else
-         echo -e "\nauto $gnic:$count\niface $gnic:$count inet static\n\taddress $ipcidr" >> /etc/network/interfaces
+         echo -e "\nauto $gnic:$count\niface $gnic:$count inet static\n\taddress $ip/$cidr" >> /etc/network/interfaces
          let count++
        fi
        # configure HTTP
