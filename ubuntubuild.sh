@@ -256,7 +256,9 @@ case $opt in
      echo -e "acl localnet src 172.30.0.0/21\n$(cat /etc/squid/squid.conf)" > /etc/squid/squid.conf
      sed -i 's/http_access allow localhost/http_access allow localnet/g' /etc/squid/squid.conf
      sed -i "s/^http_port 3128/http_port $ProxyPort/g" /etc/squid/squid.conf
-     service squid restart;;
+     service squid restart
+     clear
+     echo -e "$green Installation Complete! $default";;
   2) clear; echo -e "$green Installing $svr Specific Applications $default";
      apt update
      apt install -y bind9 bind9utils bind9-doc
@@ -270,7 +272,9 @@ case $opt in
      echo "include \"/etc/bind/named.conf.TRAFFIC\";" >> /etc/bind/named.conf
      echo "include \"/etc/bind/blackhole/rangism.zones\";" >> /etc/bind/named.conf
      echo "include \"/etc/bind/rndc.key\";" >> /etc/bind/named.conf
-     service bind9 restart;;
+     service bind9 restart
+     clear
+     echo -e "$green Installation Complete! $default";;
   3) clear; echo -e "$green Installing $svr Specific Applications $default";
      cp -r ca /root
      cd /root/ca
@@ -300,7 +304,9 @@ case $opt in
      mkdir -p /var/www/html
      chmod 755 /root/scripts/*.sh
      sed -i "s/CAPASSWORD/$capempass/g" /root/scripts/*.sh
-     sed -i "s/CADOMAINNAME/$CA/g" /root/scripts/*.sh;;
+     sed -i "s/CADOMAINNAME/$CA/g" /root/scripts/*.sh
+     clear
+     echo -e "$green Installation Complete! $default";;
   4) clear; echo -e "$green Installing $srv Specific Applications $default"
      cp -r rts/scripts /root
      cp -r rts/backbonerouters /root
@@ -355,7 +361,9 @@ case $opt in
      docker build -t cobaltstrike /root
      debconf-set-selections <<< "postfix postfix/mailname string rts"
      debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
-     apt install --assume-yes postfix;;
+     apt install --assume-yes postfix
+     clear
+     echo -e "$green Installation Complete! $default";;
   5) mkdir -p /root/owncloud
      mkdir -p /root/owncloud/SSL
      mkdir -p /root/pastebin
@@ -421,13 +429,17 @@ case $opt in
      cd /root/redbook
      docker exec -i bookstack_db mysql -uroot -pbookstack bookstackapp < defaultbookstack.sql
      tar -xvzf bookstackimages.tar.gz
-     docker cp images bookstack:/app/www/public/uploads;;
+     docker cp images bookstack:/app/www/public/uploads
+     clear
+     echo -e "$green Installation Complete! $default";;
   6) clear
      echo -e "$green Setting up External SMTP Traffic Gen $default"
      sleep 2
      cp -r /home/user/Cyber-Range/trafficgen/* /root/
      cd /root
-     docker build -t emailgen .;;
+     docker build -t emailgen .
+     clear
+     echo -e "$green Installation Complete! $default";;
   7) clear 
      echo -e "$green Setting up Traffic Web Host server $default"
      sleep 2
@@ -508,5 +520,7 @@ case $opt in
      ip addr flush $anic
      ip addr flush $gnic
      service networking restart
-     systemctl reload apache2;;
+     systemctl reload apache2
+     clear
+     echo -e "$green Installation Complete! $default";;
 esac
