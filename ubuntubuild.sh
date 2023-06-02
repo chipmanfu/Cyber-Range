@@ -140,6 +140,8 @@ if [[ $opt != 1 ]]; then
 	# Set up Apt to use real internet proxy
 	echo "Acquire::http::Proxy \"$Proxy\";" > /etc/apt/apt.conf.d/proxy.conf
 	echo "Acquire::https::Proxy \"$Proxy\";" >> /etc/apt/apt.conf.d/proxy.conf
+	export http_proxy=$Proxy
+	export https_proxy=$Proxy
 fi
 echo -e "$green Changings some environment settings $default"
 sleep 2
