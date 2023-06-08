@@ -87,8 +87,8 @@ BuildMenu()
   echo -e "\t$ltblue 3)$white CA Server"
   echo -e "\t$ltblue 4)$white Not Red Team Server (NRTS)"
   echo -e "\t$ltblue 5)$white Web Services"
-  echo -e "\t$ltblue 6)$white Traffic Gen"
-  echo -e "\t$ltblue 7)$white Web Traffic Host"
+  echo -e "\t$ltblue 6)$white Traffic-EmailGen"
+  echo -e "\t$ltblue 7)$white Traffic-WebHost"
   echo -e "\t$ltblue q)$white Exit script"
   echo -ne "\n\t$ltblue Enter a Selection: $default"
   read answer
@@ -98,8 +98,8 @@ BuildMenu()
 	  3) srv="CA Server"; opt=3; needdocker=n;;
 	  4) srv="Red Team Server"; opt=4; needdocker=y;;
 	  5) srv="Web Services"; opt=5; needdocker=y;;
-	  6) srv="Traffic Gen"; opt=6; needdocker=y;;
-	  7) srv="Web Traffic Host"; opt=7; needdocker=n;;
+	  6) srv="Traffic-EmailGen"; opt=6; needdocker=y;;
+	  7) srv="Traffic-WebHost"; opt=7; needdocker=n;;
 	  q|Q) exit;;
 	  *) echo -e "\n\t\t$red Invalid Selection, Please try again$default"; sleep 2; BuildMenu;;
   esac
@@ -124,7 +124,7 @@ if [ -z "$gnic" ]; then
 fi
 servername=$srv
 if [[ $opt != 1 ]]; then
-	# Set up wget to use real internet proxy
+	# Every else will use the internet proxy, so we'll set up all the proxy things here.
         if grep ^use_proxy /etc/wgetrc > /dev/null; then
            sed -i '/^use_proxy/d' /etc/wgetrc
         fi
@@ -137,13 +137,13 @@ if [[ $opt != 1 ]]; then
           sed -i '/^https_proxy/d' /etc/wgetrc
         fi
         echo "https_proxy=$Proxy" >> /etc/wgetrc
-	# Set up Apt to use real internet proxy
+	# Set up apt to use real internet proxy
 	echo "Acquire::http::Proxy \"$Proxy\";" > /etc/apt/apt.conf.d/proxy.conf
 	echo "Acquire::https::Proxy \"$Proxy\";" >> /etc/apt/apt.conf.d/proxy.conf
 	export http_proxy=$Proxy
 	export https_proxy=$Proxy
 fi
-echo -e "$green Changings some environment settings $default"
+echo -e "$green Changing some environment settings $default"
 sleep 2
 echo "colo industry" > /root/.vimrc
 echo 'LS_COLORS=$LSCOLORS:"di=96:"; export LS_COLORS' >> /root/.bashrc
@@ -403,33 +403,33 @@ case $opt in
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/redbook* /root/redbook/SSL 
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/diagrams* /root/drawio/SSL
      clear 
+	 cp -r webservices/owncloud/* /root/owncloud/
+	 cp -r webservices/pastebin/* /root/pastebin/
+	 cp -r webservices/redbook/* /root/redbook/
+	 cp -r webservices/drawio/* /root/drawio/
      echo -e "$green Setting up owncloud server $default"
      sleep 2
-     cp -r webservices/owncloud/* /root/owncloud/
      cd /root/owncloud
      docker-compose up -d
      clear
      echo -e "$green Setting up pastebin server $default"
      sleep 2
-     cp -r /home/user/Cyber-Range/webservices/pastebin/* /root/pastebin/
      cd /root/pastebin
      docker-compose up --build -d
      clear
      echo -e "$greeen Setting up Redbook server $default"
      sleep 2
-     cp -r /home/user/Cyber-Range/webservices/redbook/* /root/redbook/
      cd /root/redbook
      docker-compose up -d
      clear
      echo -e "$green Setting up diagrams.net server $default"
      sleep 2
-     cp -r /home/user/Cyber-Range/webservices/drawio/* /root/drawio/
      cd /root/drawio
      docker-compose up -d
      clear
      echo -e "$green Populating Bookstack with Cyber Range documentation $default"
      cd /root/redbook
-     docker exec -i bookstack_db mysql -uroot -pbookstack bookstackapp < defaultbookstack.sql
+     docker exec -i bookstack_db mysql -uroot -pbookstack bookstackapp < CRDocumentation.sql
      tar -xvzf bookstackimages.tar.gz
      docker cp images bookstack:/app/www/public/uploads
      clear
@@ -437,7 +437,7 @@ case $opt in
   6) clear
      echo -e "$green Setting up External SMTP Traffic Gen $default"
      sleep 2
-     cp -r /home/user/Cyber-Range/trafficgen/* /root/
+     cp -r trafficgen/* /root/
      cd /root
      docker build -t emailgen .
      clear
