@@ -403,10 +403,10 @@ case $opt in
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/redbook* /root/redbook/SSL 
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/diagrams* /root/drawio/SSL
      clear 
-	 cp -r webservices/owncloud/* /root/owncloud/
-	 cp -r webservices/pastebin/* /root/pastebin/
-	 cp -r webservices/redbook/* /root/redbook/
-	 cp -r webservices/drawio/* /root/drawio/
+     cp -r webservices/owncloud/* /root/owncloud/
+     cp -r webservices/pastebin/* /root/pastebin/
+     cp -r webservices/redbook/* /root/redbook/
+     cp -r webservices/drawio/* /root/drawio/
      echo -e "$green Setting up owncloud server $default"
      sleep 2
      cd /root/owncloud
@@ -430,8 +430,10 @@ case $opt in
      echo -e "$green Populating Bookstack with Cyber Range documentation $default"
      cd /root/redbook
      docker exec -i bookstack_db mysql -uroot -pbookstack bookstackapp < CRDocumentation.sql
-     tar -xvzf bookstackimages.tar.gz
+     tar -xvzf files.tar.gz
+     tar -xvzf images.tar.gz
      docker cp images bookstack:/app/www/public/uploads
+     docker cp files bookstack:/app/www/public/uploads
      clear
      echo -e "$green Installation Complete! $default";;
   6) clear
