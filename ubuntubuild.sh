@@ -417,7 +417,7 @@ case $opt in
      cd /root/pastebin
      docker-compose up --build -d
      clear
-     echo -e "$greeen Setting up Redbook server $default"
+     echo -e "$green Setting up Redbook server $default"
      sleep 2
      cd /root/redbook
      docker-compose up -d
@@ -433,7 +433,8 @@ case $opt in
      tar -xvzf files.tar.gz
      tar -xvzf images.tar.gz
      docker cp images bookstack:/app/www/public/uploads
-     docker cp files bookstack:/app/www/public/uploads
+     docker cp files bookstack:/config/www
+     docker exec -i bookstack chown -R abc:users /config/www/files
      clear
      echo -e "$green Installation Complete! $default";;
   6) clear
