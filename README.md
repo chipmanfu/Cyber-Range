@@ -1,2 +1,2 @@
 # Cyber-Range
-Combination of bash and Vyos scripts to configure a simulated internet cyber range environment.  Currently a work in progress and not ready for use.  
+The CyberRange is a project to create a simulated internet environment for Cyber training and exercises.  This build environment has some built in features to help automate things for cyber threat emulation by handling things like IP assignment, DNS registration, Signed SSL cert generation for threat infastruture systems like redirectors, Cobalt Strike teamservers, payload hosting and phishing attacks.  Additional consideration and features have been added to generate benign network traffic to improve realism.
