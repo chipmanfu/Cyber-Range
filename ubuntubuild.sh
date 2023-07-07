@@ -404,11 +404,11 @@ case $opt in
      else
        sshpass -p toor ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d msftconnecttest.com -C US -ST Washington -L Redmond -O 'Microsoft corp' -CN msftconnecttest.com -A msftconnecttest -DNS1 www.msftconnecttest.com -DNS2 msftncsi.com -DNS3 www.msftncsi.com"
      fi
-     sshpass -p toor scp -r 180.1.1.50:/var/www/html/dropbox* /root/owncloud/SSL
-     sshpass -p toor scp -r 180.1.1.50:/var/www/html/pastebin* /root/pastebin/SSL
-     sshpass -p toor scp -r 180.1.1.50:/var/www/html/redbook* /root/redbook/SSL 
-     sshpass -p toor scp -r 180.1.1.50:/var/www/html/diagrams* /root/drawio/SSL
-     sshpass -p toor scp -r 180.1.1.50:/var/www/html/msftconnecttest* /root/ms_sites/SSL
+     sshpass -p toor scp -r 180.1.1.50:/var/www/html/dropbox* /root/owncloud/SSL/
+     sshpass -p toor scp -r 180.1.1.50:/var/www/html/pastebin* /root/pastebin/SSL/
+     sshpass -p toor scp -r 180.1.1.50:/var/www/html/redbook* /root/redbook/SSL/
+     sshpass -p toor scp -r 180.1.1.50:/var/www/html/diagrams* /root/drawio/SSL/
+     sshpass -p toor scp -r 180.1.1.50:/var/www/html/msftconnecttest* /root/ms_sites/SSL/
      clear 
      echo -e "$green Setting up NTP server $default"
      sleep 2
