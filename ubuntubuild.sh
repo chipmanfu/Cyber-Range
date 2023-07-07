@@ -371,10 +371,15 @@ case $opt in
   5) clear
      echo -e "$green Setting up Webservices VM $default"
      cp -r webservices/owncloud /root
+     mkdir -p /root/owncloud/SSL
      cp -r webservices/pastebin /root
+     mkdir -p /root/pastebin/SSL
      cp -r webservices/redbook /root
+     mkdir -p /root/redbook/SSL
      cp -r webservices/drawio /root
+     mkdir -p /root/drawio/SSL
      cp -r webservices/ms_sites /root
+     mkdir -p /root/ms_sites/SSL
      cp -r webservices/ntp /root
      echo -e "$green Pulling SSL certs for dropbox.com, pastebin.com, diagams.net, redbook.com, and msftconnecttest.com $default"
      sleep 2
