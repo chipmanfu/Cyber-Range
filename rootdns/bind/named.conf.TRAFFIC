@@ -5,6 +5,44 @@
 //	allow-query { any; };
 //	allow-update { any; };
 //};
+// NTP Servers
+zone "windows.com." IN {
+	type master;
+	file "TRAFFIC/db.windows.com";
+	allow-query { any; };
+	allow-update { none; };
+};
+zone "ntp.org." IN {
+	type master;
+	file "TRAFFIC/db.ntp.org";
+	allow-query { any; };
+	allow-update { none; };
+};
+zone "nist.gov." IN {
+	type master;
+	file "TRAFFIC/db.nist.gov";
+	allow-query { any; };
+	allow-update { none; };
+};
+zone "usno.navy.mil." IN {
+	type master;
+	file "TRAFFIC/db.usno.navy.mil";
+	allow-query { any; };
+	allow-update { none; };
+};
+// MS online connection test sites
+zone "msftconnecttest.com." IN {
+	type master;
+	file "TRAFFIC/db.msftconnecttest.com";
+	allow-query { any; };
+	allow-update { none; };
+};
+zone "msftncsi.com." IN {
+	type master;
+	file "TRAFFIC/db.msftncsi.com";
+	allow-query { any; };
+	allow-update { none; };
+};
 // SMTP External Traffic Gen
 zone "gmail.com." IN {
 	type master;

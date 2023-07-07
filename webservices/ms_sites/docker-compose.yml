@@ -1,0 +1,14 @@
+version: "3"
+services:
+  nginx_mssites:
+    container_name: nginx_ms_online_sites
+    image: nginx
+    restart: unless-stopped
+    volumes:
+      - /root/ms_sites/SSL:/SSL
+      - /root/ms_sites/config/nginx.conf:/etc/nginx/nginx.conf
+      - /root/ms_sites/connecttest.txt:/var/www/html/connecttest.txt
+      - /root/ms_sites/ncsi.txt:/var/www/html/ncsi.txt
+    ports:
+      - 180.1.1.150:80:80
+      - 180.1.1.150:443:443

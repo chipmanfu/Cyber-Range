@@ -1,0 +1,7 @@
+; NTP server pointing to webservice VM's NTP docker container service
+$TTL	86400
+@	IN	SOA	@	ns1.nist.gov. 42 3H 15M 1W 1D
+@	IN	NS		ns1.nist.gov.
+@	IN	A		180.1.1.140	
+*	IN	A		180.1.1.140
+ns1	IN	A		198.41.0.4

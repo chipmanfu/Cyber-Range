@@ -52,7 +52,9 @@ webnic1="dhcp"
 webnic2="180.1.1.100/24
          180.1.1.110/24
          180.1.1.120/24
-	 180.1.1.130/24"
+	 180.1.1.130/24
+	 180.1.1.140/24
+	 180.1.1.150/24"
 webgw="180.1.1.1"
 owncloudIP="180.1.1.100"
 pastebinIP="180.1.1.110"
@@ -366,16 +368,8 @@ case $opt in
      apt install --assume-yes postfix
      clear
      echo -e "$green Installation Complete! $default";;
-  5) mkdir -p /root/owncloud
-     mkdir -p /root/owncloud/SSL
-     mkdir -p /root/pastebin
-     mkdir -p /root/pastebin/SSL
-     mkdir -p /root/redbook
-     mkdir -p /root/redbook/SSL
-     mkdir -p /root/drawio
-     mkdir -p /root/drawio/SSL
-     clear
-     echo -e "$green Pulling SSL certs for dropbox.com, pastebin.com, diagams.net, and redbook.com $default"
+  5) clear
+     echo -e "$green Pulling SSL certs for dropbox.com, pastebin.com, diagams.net, redbook.com, and msftconnecttest.com $default"
      sleep 2
      existingcerts=`sshpass -p toor ssh -o StrictHostKeyChecking=no 180.1.1.50 'ls /var/www/html'`
      if echo $existingcerts | grep dropbox.com.crt > /dev/null; then
@@ -398,15 +392,32 @@ case $opt in
      else
        sshpass -p toor ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d diagrams.net -C US -ST Idaho -L Boise -O 'draw corp' -CN diagrams.net -A diagrams -DNS1 diagrams.net -DNS2 embed.diagrams.net"
      fi
+     if echo $existingcerts | grep msftconnecttest.com.crt > /dev/null; then
+       echo "msftconnecttest.com certs exists, skipping creation"
+     else
+       sshpass -p toor ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d msftconnecttest.com -C US -ST Washington -L Redmond -O 'Microsoft corp' -CN msftconnecttest.com -A msftconnecttest -DNS1 www.msftconnecttest.com -DNS2 msftncsi.com -DNS3 www.msftncsi.com"
+     fi
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/dropbox* /root/owncloud/SSL
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/pastebin* /root/pastebin/SSL
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/redbook* /root/redbook/SSL 
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/diagrams* /root/drawio/SSL
+     sshpass -p toor scp -r 180.1.1.50:/var/www/html/msftconnecttest* /root/ms_sites/SSL
      clear 
-     cp -r webservices/owncloud/* /root/owncloud/
-     cp -r webservices/pastebin/* /root/pastebin/
-     cp -r webservices/redbook/* /root/redbook/
-     cp -r webservices/drawio/* /root/drawio/
+     cp -r webservices/owncloud /root
+     cp -r webservices/pastebin /root
+     cp -r webservices/redbook /root
+     cp -r webservices/drawio /root
+     cp -r webservices/ms_sites /root
+     cp -r webservices/ntp /root
+     echo -e "$green Setting up NTP server $default"
+     sleep 2
+     cd /root/ntp
+     docker-compose up -d
+     clear
+     echo -e "$green Setting up Microsoft online connection test sites $default"
+     cd /root/ms_sites
+     docker-compose up -d
+     clear
      echo -e "$green Setting up owncloud server $default"
      sleep 2
      cd /root/owncloud
@@ -427,7 +438,7 @@ case $opt in
      cd /root/drawio
      docker-compose up -d
      clear
-     echo -e "$green Populating Bookstack with Cyber Range documentation $default"
+     echo -e "$green Setting up Bookstack and populating it with the Cyber Range documentation $default"
      cd /root/redbook
      docker exec -i bookstack_db mysql -uroot -pbookstack bookstackapp < CRDocumentation.sql
      tar -xvzf files.tar.gz

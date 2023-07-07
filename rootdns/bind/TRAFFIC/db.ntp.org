@@ -1,0 +1,8 @@
+;Traffic-WebHost
+$TTL	86400
+@	IN	SOA	@	ns1.ntp.org. 42 3H 15M 1W 1D
+@	IN	NS		ns1.ntp.org.
+@	IN	A		180.1.1.140	
+pool	IN	A		180.1.1.140
+*.pool	IN	A		180.1.1.140
+ns1	IN	A		198.41.0.4
