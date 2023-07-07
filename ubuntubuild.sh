@@ -369,6 +369,13 @@ case $opt in
      clear
      echo -e "$green Installation Complete! $default";;
   5) clear
+     echo -e "$green Setting up Webservices VM $default"
+     cp -r webservices/owncloud /root
+     cp -r webservices/pastebin /root
+     cp -r webservices/redbook /root
+     cp -r webservices/drawio /root
+     cp -r webservices/ms_sites /root
+     cp -r webservices/ntp /root
      echo -e "$green Pulling SSL certs for dropbox.com, pastebin.com, diagams.net, redbook.com, and msftconnecttest.com $default"
      sleep 2
      existingcerts=`sshpass -p toor ssh -o StrictHostKeyChecking=no 180.1.1.50 'ls /var/www/html'`
@@ -403,12 +410,6 @@ case $opt in
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/diagrams* /root/drawio/SSL
      sshpass -p toor scp -r 180.1.1.50:/var/www/html/msftconnecttest* /root/ms_sites/SSL
      clear 
-     cp -r webservices/owncloud /root
-     cp -r webservices/pastebin /root
-     cp -r webservices/redbook /root
-     cp -r webservices/drawio /root
-     cp -r webservices/ms_sites /root
-     cp -r webservices/ntp /root
      echo -e "$green Setting up NTP server $default"
      sleep 2
      cd /root/ntp
