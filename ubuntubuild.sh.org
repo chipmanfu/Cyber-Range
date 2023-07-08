@@ -1,18 +1,14 @@
 #!/bin/bash
 clear
 
-### User customization Variable section
-## Change this if you don't want to use the defaults.  This should set it up correctly, but not throughly tested.
-
-# Proxy settings for the Range.
+# Proxy settings for the Range if you change these, make sure the Proxy, ProxyIP, and ProxyPort all line up.
 ProxyIP="172.30.0.2"
 ProxySub="21"
 ProxyNetID="172.30.0.0"
 ProxyPort="9999"
-
-# Root password
+Proxy="http://$ProxyIP:$ProxyPort"
 MasterRootPass="toor"
-
+CAPass=$MasterRootPass
 # Certificate Authority Variables
 CA="globalcert.com"
 cac="US"                 	# Country for cert
@@ -22,10 +18,6 @@ cao="Global Certificates, Inc"	# Organization
 caou="Root Cert"		# Organizational unit
 capempass="password"
 
-#### End of user customization section - mess with variables below at your own peril.
-
-Proxy="http://$ProxyIP:$ProxyPort"
-CAPass=$MasterRootPass
 # Network Interfaces for various builds.
 # IA Proxy IP settings
 iapnic1="$ProxyIP/$ProxySub"
@@ -47,13 +39,11 @@ rootdnsnic2="8.8.8.8/24
              199.7.83.42/24 
              202.12.27.33/24"
 rootdnsgw="8.8.8.1"
-
 # CA server
 canic1="dhcp"
 canic2="180.1.1.50/24"
 caip="180.1.1.50"
 cagw="180.1.1.1"
-
 # RTS
 rtsnic1="dhcp"
 # Randomize an IP for the 5.29.0.1/20 IP range (this range is routable via the SI-router
@@ -64,19 +54,15 @@ rtsgw="5.29.0.1"
 # Web Servers
 webnic1="dhcp"
 webnic2="180.1.1.100/24
-        180.1.1.110/24
-        180.1.1.120/24
-        180.1.1.130/24
-	    180.1.1.140/24
-        180.1.1.150/24"
+         180.1.1.110/24
+         180.1.1.120/24
+	 180.1.1.130/24
+	 180.1.1.140/24
+	 180.1.1.150/24"
 webgw="180.1.1.1"
 owncloudIP="180.1.1.100"
 pastebinIP="180.1.1.110"
 redbookIP="180.1.1.120"
-drawioIP="180.1.1.130"
-ntpIP="180.1.1.140"
-mssitesIP="180.1.1.150"
-
 # Traffic Gen
 trafnic1="dhcp"
 trafnic2="92.107.127.12/24
@@ -85,12 +71,10 @@ trafnic2="92.107.127.12/24
 	  70.32.91.153/24
 	  188.65.120.83/24"
 trafgw="92.107.127.1"
-
 # Web host
 webhostnic1="dhcp"
 webhostnic2="92.107.127.100/24"
 webhostgw="92.107.127.1"
-
 # Color codes for menu
 white="\e[1;37m"
 ltblue="\e[1;36m"
@@ -146,24 +130,24 @@ if [ -z "$gnic" ]; then
 fi
 servername=$srv
 if [[ $opt != 1 ]]; then
-  # Every else will use the internet proxy, so we'll set up all the proxy things here.
-  if grep ^use_proxy /etc/wgetrc > /dev/null; then
-    sed -i '/^use_proxy/d' /etc/wgetrc
-  fi
-  echo "use_proxy=yes" >> /etc/wgetrc	
-  if grep ^http_proxy /etc/wgetrc > /dev/null; then
-    sed -i '/^http_proxy/d' /etc/wgetrc
-  fi
-  echo "http_proxy=$Proxy" >> /etc/wgetrc
-  if grep ^https_proxy /etc/wgetrc > /dev/null; then
-    sed -i '/^https_proxy/d' /etc/wgetrc
-  fi
-  echo "https_proxy=$Proxy" >> /etc/wgetrc
-  # Set up apt to use real internet proxy
-  echo "Acquire::http::Proxy \"$Proxy\";" > /etc/apt/apt.conf.d/proxy.conf
-  echo "Acquire::https::Proxy \"$Proxy\";" >> /etc/apt/apt.conf.d/proxy.conf
-  export http_proxy=$Proxy
-  export https_proxy=$Proxy
+	# Every else will use the internet proxy, so we'll set up all the proxy things here.
+        if grep ^use_proxy /etc/wgetrc > /dev/null; then
+           sed -i '/^use_proxy/d' /etc/wgetrc
+        fi
+        echo "use_proxy=yes" >> /etc/wgetrc	
+        if grep ^http_proxy /etc/wgetrc > /dev/null; then
+           sed -i '/^http_proxy/d' /etc/wgetrc
+        fi
+        echo "http_proxy=$Proxy" >> /etc/wgetrc
+        if grep ^https_proxy /etc/wgetrc > /dev/null; then
+          sed -i '/^https_proxy/d' /etc/wgetrc
+        fi
+        echo "https_proxy=$Proxy" >> /etc/wgetrc
+	# Set up apt to use real internet proxy
+	echo "Acquire::http::Proxy \"$Proxy\";" > /etc/apt/apt.conf.d/proxy.conf
+	echo "Acquire::https::Proxy \"$Proxy\";" >> /etc/apt/apt.conf.d/proxy.conf
+	export http_proxy=$Proxy
+	export https_proxy=$Proxy
 fi
 echo -e "$green Changing some environment settings $default"
 sleep 2
@@ -248,7 +232,8 @@ for IP in $nic2; do
   if [[ $IP == "dhcp" ]]; then
     echo -e "\nauto $gnic\niface $gnic inet dhcp" >> /etc/network/interfaces
   else
-    if [[ $count == 0 ]]; then 
+    if [[ $count == 0 ]]; then
+ 
       echo -e "\nauto $gnic\niface $gnic inet static\n\taddress $IP" >> /etc/network/interfaces
       if [[ ! -z $gw ]]; then
         echo -e "\tgateway $gw" >> /etc/network/interfaces
@@ -274,6 +259,7 @@ service networking start
 service ssh restart
 case $opt in 
   1) clear; echo -e "$green Installing $svr Specific Applications $default";
+     
      apt install -y squid
      mv /etc/squid/squid.conf /etc/squid/squidmanual.txt 
      grep -v "^#" /etc/squid/squidmanual.txt | grep -v "^$" > /etc/squid/squid.conf
@@ -285,7 +271,7 @@ case $opt in
      clear
      echo -e "$green Installation Complete! $default";;
   2) clear; echo -e "$green Installing $svr Specific Applications $default";
- #1    apt update
+     apt update
      apt install -y bind9 bind9utils bind9-doc
      chmod 775 /etc/bind
      cp -r rootdns/bind/* /etc/bind
@@ -308,6 +294,7 @@ case $opt in
      touch index.txt
      touch index.txt.attr
      echo '1000' > serial
+
      sed -i "s/DOMAINNAME/$CA/g" openssl_root.cnf
      openssl genrsa -aes256 -out private/ca.$CA.key.pem -passout pass:$capempass 4096
      openssl req -config openssl_root.cnf -new -x509 -sha512 -extensions v3_ca -key /root/ca/private/ca.$CA.key.pem -out /root/ca/certs/ca.$CA.crt.pem -days 3650 -set_serial 0 -passin pass:$capempass -subj "/C=$cac/ST=$cast/L=$cal/O=$cao/OU=$caou/CN=ca.$CA"
@@ -321,6 +308,7 @@ case $opt in
      sed -i "s/DOMAINNAME/$CA/g" openssl_intermediate.cnf
      cd /root/ca
      openssl req -config /root/ca/intermediate/openssl_intermediate.cnf -new -newkey rsa:4096 -keyout /root/ca/intermediate/private/int.$CA.key.pem -out /root/ca/intermediate/csr/int.$CA.csr -passout pass:$capempass -subj "/C=$cac/ST=$cast/L=$cal/O=$cao/OU=$caou/CN=int.$CA"
+
      openssl ca -batch -config /root/ca/openssl_root.cnf -extensions v3_intermediate_ca -days 3650 -notext -md sha512 -in /root/ca/intermediate/csr/int.$CA.csr -out /root/ca/intermediate/certs/int.$CA.crt.pem -passin pass:$capempass
      cat intermediate/certs/int.$CA.crt.pem certs/ca.$CA.crt.pem > intermediate/certs/chain.$CA.crt.pem
      mkdir -p /var/www
@@ -336,44 +324,26 @@ case $opt in
      cp -r rts/Profiles /root
      sed -i "s/= 'i'/= 'a'/g" /etc/needrestart/needrestart.conf
      sed -i "s/#\$nrconf{re/\$nrconf{re/g" /etc/needrestart/needrestart.conf
-     sed -i "s/^intname=.*/intname=\"$gnic\"/g" /root/scripts/buildredteam.sh
-     sed -i "s/^CAserver=.*/CAserver=\"$caip\"/g" /root/scripts/buildredteam.sh
-     sed -i "s/^CAcert=.*/CAcert=\"int.$CA.crt.pem\"/g" /root/scripts/buildredteam.sh
      apt install -y openjdk-11-jdk
      update-java-alternatives -s java-1.11.0-openjdk-amd64
      echo -e "$green Grabbing Cobalt Strike $default"
-     InstallCS="n"
-     while :
-     do
-       echo -ne "$ltblue\t Please enter your Cobalt Strike License (c to cancel): $default"
-       read csl
-       if [ $csl = "n" ]; then break; fi
-       export TOKEN=$(curl -s https://download.cobaltstrike.com/download -d "dlkey=${csl}" | grep 'href="/downloads/' | cut -d '/' -f3) 
-       if [ ! -z $TOKEN ]; then
-         InstallCS="y"
-	 break
-       else 
-         echo -e "$red ERROR! $white Key entered is invalid, Please try again. $default"
-         sleep 2
-         clear
-       fi
-    done
-     if [ $InstallCS = "y" ]; then 
-       echo -e "$green Cobalt Strike License accepted! $default"
-       cd /root
-       wget https://download.cobaltstrike.com/downloads/${TOKEN}/latest46/cobaltstrike-dist.tgz
-       tar -zxf cobaltstrike-dist.tgz
-       rm cobaltstrike-dist.tgz
-       mv cobaltstrike cobaltstrike-local
-       sed -i "s/^java/java -Dhttp.proxyHost=$ProxyIP -Dhttp.proxyPort=$ProxyPort -Dhttps.proxyHost=$ProxyIP -Dhttps.proxyPort=$ProxyPort/g" /root/cobaltstrike-local/update
-       cd /root/cobaltstrike-local
-       echo -e "$green Updating Cobalt Strike. NOTE: Script will update Cobalt strike next, it will ask for your license again, but you won't need to enter it. $default"
-       sleep 2
-       echo ${csl} | ./update
-       sleep 2
-     else
-       echo "Cobalt Strike install cancelled!"
-     fi 
+     echo -ne "$ltblue\t Please enter your Cobalt Strike License: $default"
+     read csl
+     export TOKEN=$(curl -s https://download.cobaltstrike.com/download -d "dlkey=${csl}" | grep 'href="/downloads/' | cut -d '/' -f3) 
+     cd /root
+     sed -i "s/^intname=.*/intname=\"$gnic\"/g" /root/scripts/buildredteam.sh
+     sed -i "s/^CAserver=.*/CAserver=\"$caip\"/g" /root/scripts/buildredteam.sh
+     sed -i "s/^CAcert=.*/CAcert=\"int.$CA.crt.pem\"/g" /root/scripts/buildredteam.sh
+     wget https://download.cobaltstrike.com/downloads/${TOKEN}/latest46/cobaltstrike-dist.tgz
+     tar -zxf cobaltstrike-dist.tgz
+     rm cobaltstrike-dist.tgz
+     mv cobaltstrike cobaltstrike-local
+     sed -i "s/^java/java -Dhttp.proxyHost=$ProxyIP -Dhttp.proxyPort=$ProxyPort -Dhttps.proxyHost=$ProxyIP -Dhttps.proxyPort=$ProxyPort/g" /root/cobaltstrike-local/update
+     cd /root/cobaltstrike-local
+     echo -e "$green Updating Cobalt Strike $default"
+     sleep 2
+     echo ${csl} | ./update
+     sleep 2
      cd /root
      echo -e "$green Grabbing C2concealer $default"
      export http_proxy=$Proxy
@@ -392,16 +362,14 @@ case $opt in
      docker pull nginx
      docker pull haproxy
      docker pull httpd
-     if [ $InstallCS = "y" ]; then 
-       echo "FROM ubuntu" > /root/Dockerfile
-       echo "ENV http_proxy $Proxy" >> /root/Dockerfile
-       echo "ENV https_proxy $Proxy" >> /root/Dockerfile
-       echo "USER root" >> /root/Dockerfile
-       echo "RUN apt update && apt install --no-install-recommends -y openjdk-11-jdk && \ " >> /root/Dockerfile
-       echo "    apt clean && rm -rf /var/local/apt/lists/* /tmp/* /var/tmp/*" >> /root/Dockerfile
-       echo "RUN update-java-alternatives -s java-1.11.0-openjdk-amd64" >> /root/Dockerfile
-       docker build -t cobaltstrike /root
-     fi
+     echo "FROM ubuntu" > /root/Dockerfile
+     echo "ENV http_proxy $Proxy" >> /root/Dockerfile
+     echo "ENV https_proxy $Proxy" >> /root/Dockerfile
+     echo "USER root" >> /root/Dockerfile
+     echo "RUN apt update && apt install --no-install-recommends -y openjdk-11-jdk && \ " >> /root/Dockerfile
+     echo "    apt clean && rm -rf /var/local/apt/lists/* /tmp/* /var/tmp/*" >> /root/Dockerfile
+     echo "RUN update-java-alternatives -s java-1.11.0-openjdk-amd64" >> /root/Dockerfile
+     docker build -t cobaltstrike /root
      debconf-set-selections <<< "postfix postfix/mailname string rts"
      debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
      apt install --assume-yes postfix

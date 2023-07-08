@@ -39,7 +39,8 @@ gotdnsinfo=0
 # Set variable names to add color codes to menu displays.
 white="\e[1;37m"
 ltblue="\e[1;36m"
-ltgray="\e[0;37m"
+ltgray="\e[0;30m"
+dkgray="\e[1;30m"
 red="\e[1;31m"
 green="\e[1;32m"
 whiteonblue="\e[5;37;44m"
@@ -107,7 +108,16 @@ else
     disablepayload=1
   fi
 fi
-
+# Test if Cobalt Strike is installed
+if [ -d "/root/cobaltstrike-local" ]; then
+  CSinstalled="y"
+else
+  CSinstalled="n"
+  echo -e "\n$yellow Warning:$ltblue /root/cobaltstrike-local directory is missing."
+  echo -e "\t This script can't build Cobalt Strike teamservers without Cobalt Strike"
+  echo -e "\t folder being deployed at that path.  Cobalt Strike teamserver option"
+  echo -e "\t will be disabled"
+fi
 ####   GENERAL FUNCTIONS FOR FORMATTING, STANDARD MESSAGES
 MenuBanner()
 {
@@ -161,7 +171,12 @@ Format2Options()
   local title="$2"
   printf "\t$ltblue%3b )$white %-23b\n" "$count" "$title"
 }
-
+Format2Grayout()
+{
+  local count="$1"
+  local title="$2"
+  printf "\t$dkgray%3b ) %-23b\n" "$count" "$title"
+} 
 SettingFormat()
 {
   local title="$1"
@@ -200,7 +215,11 @@ MainMenu()
   # List options, get user input, process the input.
   Format2Options 1 "Set up a NGINX redirector (http,https,DNS)"
   Format2Options 2 "Set up a HAProxy redirector (${yellow}http and/or https only)"
-  Format2Options 3 "Set up a Cobalt Strike teamserver"
+  if [ $CSinstalled = "y" ]; then
+    Format2Options 3 "Set up a Cobalt Strike teamserver"
+  else
+    Format2Grayout 3 "Set up a Cobalt Strike teamserver"
+  fi
   Format2Options 4 "Set up a payload host server"
   Format2Options 5 "Set up phishing attack"
   Format2Options 6 "Container Management"
@@ -209,7 +228,14 @@ MainMenu()
   case $optin in
     1) opt=1; service="Nginx Redirector"; setnginx=1; ServiceTagMenu;;
     2) opt=2; service="HAProxy Redirector"; sethaproxy=1; ServiceTagMenu;;
-    3) opt=3; service="CS Teamserver"; setcsts=1; ServiceTagMenu;;
+    3) if [ $CSinstalled = "y" ]; then
+         opt=3; service="CS Teamserver"; setcsts=1; ServiceTagMenu
+       else
+         echo -e "$red Cobalt Strike isn't installed!"
+         sleep 2
+	 InputError
+         MainMenu
+       fi;;
     4) opt=4
        if [ $disablepayload == 1 ]; then
          echo -e "$red Option is disabled!"
