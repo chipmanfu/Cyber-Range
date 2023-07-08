@@ -26,6 +26,7 @@ capempass="password"
 
 Proxy="http://$ProxyIP:$ProxyPort"
 CAPass=$MasterRootPass
+DNSPass=$MasterRootPass
 # Network Interfaces for various builds.
 # IA Proxy IP settings
 iapnic1="$ProxyIP/$ProxySub"
@@ -406,6 +407,9 @@ case $opt in
      debconf-set-selections <<< "postfix postfix/mailname string rts"
      debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
      apt install --assume-yes postfix
+     ssh-keygen -b 1024 -t rsa -f /root/.ssh/id_rsa -q -N ""
+     sshpass -p $CAPass ssh-copy-id 180.1.1.50
+     sshpass -p $DNSPass ssh-copy-id 198.41.0.4
      clear
      echo -e "$green Installation Complete! $default";;
   5) clear
