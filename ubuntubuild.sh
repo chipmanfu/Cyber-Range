@@ -367,12 +367,13 @@ case $opt in
        mv cobaltstrike cobaltstrike-local
        sed -i "s/^java/java -Dhttp.proxyHost=$ProxyIP -Dhttp.proxyPort=$ProxyPort -Dhttps.proxyHost=$ProxyIP -Dhttps.proxyPort=$ProxyPort/g" /root/cobaltstrike-local/update
        cd /root/cobaltstrike-local
-       echo -e "$green Updating Cobalt Strike. NOTE: Script will update Cobalt strike next, it will ask for your license again, but you won't need to enter it. $default"
+       echo -e "$green Updating Cobalt Strike. NOTE: It will ask for your license again, but you won't need to enter it. $default"
        sleep 2
        echo ${csl} | ./update
        sleep 2
      else
-       echo "Cobalt Strike install cancelled!"
+       echo -e "$yellow Cobalt Strike install cancelled! $default"
+       sleep 2
      fi 
      cd /root
      echo -e "$green Grabbing C2concealer $default"
