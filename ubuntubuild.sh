@@ -347,7 +347,7 @@ case $opt in
      do
        echo -ne "$ltblue\t Please enter your Cobalt Strike License (c to cancel): $default"
        read csl
-       if [ $csl = "n" ]; then break; fi
+       if [[ $csl = @(c|C) ]]; then break; fi
        export TOKEN=$(curl -s https://download.cobaltstrike.com/download -d "dlkey=${csl}" | grep 'href="/downloads/' | cut -d '/' -f3) 
        if [ ! -z $TOKEN ]; then
          InstallCS="y"
