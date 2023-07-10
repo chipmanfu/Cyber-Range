@@ -286,7 +286,7 @@ case $opt in
      clear
      echo -e "$green Installation Complete! $default";;
   2) clear; echo -e "$green Installing $svr Specific Applications $default";
- #1    apt update
+     apt update
      apt install -y bind9 bind9utils bind9-doc
      chmod 775 /etc/bind
      cp -r rootdns/bind/* /etc/bind
