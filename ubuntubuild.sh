@@ -105,24 +105,24 @@ BuildMenu()
   clear
   echo -e "\n$ltblue Ubuntu Grayspace build Script\n"
   echo -e "\tWhich Server will this be?"
-  echo -e "\t$ltblue 1)$white IA Proxy"
+  echo -e "\t$ltblue 1)$white IA_Proxy"
   echo -e "\t$ltblue 2)$white RootDNS"
-  echo -e "\t$ltblue 3)$white CA Server"
-  echo -e "\t$ltblue 4)$white Web Services"
+  echo -e "\t$ltblue 3)$white CA_Server"
+  echo -e "\t$ltblue 4)$white Web_Services"
   echo -e "\t$ltblue 5)$white Not Red Team Server (NRTS)"
-  echo -e "\t$ltblue 6)$white Traffic-EmailGen"
-  echo -e "\t$ltblue 5)$white Web Services"
+  echo -e "\t$ltblue 6)$white Traffic_EmailGen"
+  echo -e "\t$ltblue 7)$white Traffic_WebHost"
   echo -e "\t$ltblue q)$white Exit script"
   echo -ne "\n\t$ltblue Enter a Selection: $default"
   read answer
   case $answer in 
-	  1) srv="IA Proxy"; opt=1; needdocker=n;;
+	  1) srv="IA_Proxy"; opt=1; needdocker=n;;
 	  2) srv="RootDNS"; opt=2; needdocker=n;;
-	  3) srv="CA Server"; opt=3; needdocker=n;;
-	  4) srv="Web Services"; opt=4; needdocker=y;;
+	  3) srv="CA_Server"; opt=3; needdocker=n;;
+	  4) srv="Web_Services"; opt=4; needdocker=y;;
 	  5) srv="Not Red Team Server"; opt=5; needdocker=y;;
-	  6) srv="Traffic-EmailGen"; opt=6; needdocker=y;;
-	  7) srv="Traffic-WebHost"; opt=7; needdocker=n;;
+	  6) srv="Traffic_EmailGen"; opt=6; needdocker=y;;
+	  7) srv="Traffic_WebHost"; opt=7; needdocker=n;;
 	  q|Q) exit;;
 	  *) echo -e "\n\t\t$red Invalid Selection, Please try again$default"; sleep 2; BuildMenu;;
   esac
