@@ -226,10 +226,10 @@ case $opt in
      nic1=$rootdnsnic1; nic2=$rootdnsnic2; gw=$rootdnsgw;;
   3) echo -e "$green Setting interfaces for the CA Server $default"
      nic1=$canic1; nic2=$canic2; gw=$cagw;;
-  4) echo -e "$green Setting interfaces for the RTS $default"
-     nic1=$rtsnic1; nic2=$rtsnic2; gw=$rtsgw;;
-  5) echo -e "$green Setting interfaces for the Web Services Server $default"
+  4) echo -e "$green Setting interfaces for the Web Services Server $default"
      nic1=$webnic1; nic2=$webnic2; gw=$webgw;;
+  5) echo -e "$green Setting interfaces for the NRTS $default"
+     nic1=$rtsnic1; nic2=$rtsnic2; gw=$rtsgw;;
   6) echo -e "$green Setting interfaces for the Traffic Gen Server $default"
      nic1=$trafnic1; nic2=$trafnic2; gw=$trafgw;;
   7) echo -e "$green Setting interfaces for the Web Traffic Host Server $default"
