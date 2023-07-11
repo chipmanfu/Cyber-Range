@@ -39,7 +39,7 @@ gotdnsinfo=0
 # Set variable names to add color codes to menu displays.
 white="\e[1;37m"
 ltblue="\e[1;36m"
-ltgray="\e[0;30m"
+ltgray="\e[0;37m"
 dkgray="\e[1;30m"
 red="\e[1;31m"
 green="\e[1;32m"
