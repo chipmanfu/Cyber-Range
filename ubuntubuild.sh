@@ -108,10 +108,10 @@ BuildMenu()
   echo -e "\t$ltblue 1)$white IA Proxy"
   echo -e "\t$ltblue 2)$white RootDNS"
   echo -e "\t$ltblue 3)$white CA Server"
-  echo -e "\t$ltblue 4)$white Not Red Team Server (NRTS)"
-  echo -e "\t$ltblue 5)$white Web Services"
+  echo -e "\t$ltblue 4)$white Web Services"
+  echo -e "\t$ltblue 5)$white Not Red Team Server (NRTS)"
   echo -e "\t$ltblue 6)$white Traffic-EmailGen"
-  echo -e "\t$ltblue 7)$white Traffic-WebHost"
+  echo -e "\t$ltblue 5)$white Web Services"
   echo -e "\t$ltblue q)$white Exit script"
   echo -ne "\n\t$ltblue Enter a Selection: $default"
   read answer
@@ -119,8 +119,8 @@ BuildMenu()
 	  1) srv="IA Proxy"; opt=1; needdocker=n;;
 	  2) srv="RootDNS"; opt=2; needdocker=n;;
 	  3) srv="CA Server"; opt=3; needdocker=n;;
-	  4) srv="Red Team Server"; opt=4; needdocker=y;;
-	  5) srv="Web Services"; opt=5; needdocker=y;;
+	  4) srv="Web Services"; opt=4; needdocker=y;;
+	  5) srv="Not Red Team Server"; opt=5; needdocker=y;;
 	  6) srv="Traffic-EmailGen"; opt=6; needdocker=y;;
 	  7) srv="Traffic-WebHost"; opt=7; needdocker=n;;
 	  q|Q) exit;;
@@ -331,88 +331,7 @@ case $opt in
      sed -i "s/CADOMAINNAME/$CA/g" /root/scripts/*.sh
      clear
      echo -e "$green Installation Complete! $default";;
-  4) clear; echo -e "$green Installing $srv Specific Applications $default"
-     cp -r rts/scripts /root
-     cp -r rts/backbonerouters /root
-     cp -r rts/Profiles /root
-     sed -i "s/= 'i'/= 'a'/g" /etc/needrestart/needrestart.conf
-     sed -i "s/#\$nrconf{re/\$nrconf{re/g" /etc/needrestart/needrestart.conf
-     sed -i "s/^intname=.*/intname=\"$gnic\"/g" /root/scripts/buildredteam.sh
-     sed -i "s/^CAserver=.*/CAserver=\"$caip\"/g" /root/scripts/buildredteam.sh
-     sed -i "s/^CAcert=.*/CAcert=\"int.$CA.crt.pem\"/g" /root/scripts/buildredteam.sh
-     apt install -y openjdk-11-jdk
-     update-java-alternatives -s java-1.11.0-openjdk-amd64
-     echo -e "$green Grabbing Cobalt Strike $default"
-     InstallCS="n"
-     while :
-     do
-       echo -ne "$ltblue\t Please enter your Cobalt Strike License (c to cancel): $default"
-       read csl
-       if [[ $csl = @(c|C) ]]; then break; fi
-       export TOKEN=$(curl -s https://download.cobaltstrike.com/download -d "dlkey=${csl}" | grep 'href="/downloads/' | cut -d '/' -f3) 
-       if [ ! -z $TOKEN ]; then
-         InstallCS="y"
-	 break
-       else 
-         echo -e "$red ERROR! $white Key entered is invalid, Please try again. $default"
-         sleep 2
-         clear
-       fi
-    done
-     if [ $InstallCS = "y" ]; then 
-       echo -e "$green Cobalt Strike License accepted! $default"
-       cd /root
-       wget https://download.cobaltstrike.com/downloads/${TOKEN}/latest46/cobaltstrike-dist.tgz
-       tar -zxf cobaltstrike-dist.tgz
-       rm cobaltstrike-dist.tgz
-       mv cobaltstrike cobaltstrike-local
-       sed -i "s/^java/java -Dhttp.proxyHost=$ProxyIP -Dhttp.proxyPort=$ProxyPort -Dhttps.proxyHost=$ProxyIP -Dhttps.proxyPort=$ProxyPort/g" /root/cobaltstrike-local/update
-       cd /root/cobaltstrike-local
-       echo -e "$green Updating Cobalt Strike. NOTE: It will ask for your license again, but you won't need to enter it. $default"
-       sleep 2
-       echo ${csl} | ./update
-       sleep 2
-     else
-       echo -e "$yellow Cobalt Strike install cancelled! $default"
-       sleep 2
-     fi 
-     cd /root
-     echo -e "$green Grabbing C2concealer $default"
-     export http_proxy=$Proxy
-     export https_proxy=$Proxy
-     apt install -y mutt python3-pip golang
-     cd /root
-     git clone https://github.com/FortyNorthSecurity/C2concealer
-     cd C2concealer
-     ./install.sh
-     cd /root
-     echo -e "$green Grabbing SourcePoint $default"
-     git clone https://github.com/Tylous/SourcePoint
-     cd /root/SourcePoint
-     go build SourcePoint.go
-     echo -e "$green Pulling docker images $default"
-     docker pull nginx
-     docker pull haproxy
-     docker pull httpd
-     if [ $InstallCS = "y" ]; then 
-       echo "FROM ubuntu" > /root/Dockerfile
-       echo "ENV http_proxy $Proxy" >> /root/Dockerfile
-       echo "ENV https_proxy $Proxy" >> /root/Dockerfile
-       echo "USER root" >> /root/Dockerfile
-       echo "RUN apt update && apt install --no-install-recommends -y openjdk-11-jdk && \ " >> /root/Dockerfile
-       echo "    apt clean && rm -rf /var/local/apt/lists/* /tmp/* /var/tmp/*" >> /root/Dockerfile
-       echo "RUN update-java-alternatives -s java-1.11.0-openjdk-amd64" >> /root/Dockerfile
-       docker build -t cobaltstrike /root
-     fi
-     debconf-set-selections <<< "postfix postfix/mailname string rts"
-     debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
-     apt install --assume-yes postfix
-     ssh-keygen -b 1024 -t rsa -f /root/.ssh/id_rsa -q -N ""
-     sshpass -p $CAPass ssh-copy-id -o StrictHostKeyChecking=no 180.1.1.50
-     sshpass -p $DNSPass ssh-copy-id -o StrictHostKeyChecking=no 198.41.0.4
-     clear
-     echo -e "$green Installation Complete! $default";;
-  5) clear
+  4) clear
      echo -e "$green Setting up Webservices VM $default"
      cp -r webservices/owncloud /root
      mkdir -p /root/owncloud/SSL
@@ -496,6 +415,89 @@ case $opt in
      docker cp images bookstack:/app/www/public/uploads
      docker cp files bookstack:/config/www
      docker exec -i bookstack chown -R abc:users /config/www/files
+     clear
+     echo -e "$green Installation Complete! $default";;
+
+
+  5) clear; echo -e "$green Installing $srv Specific Applications $default"
+     cp -r rts/scripts /root
+     cp -r rts/backbonerouters /root
+     cp -r rts/Profiles /root
+     sed -i "s/= 'i'/= 'a'/g" /etc/needrestart/needrestart.conf
+     sed -i "s/#\$nrconf{re/\$nrconf{re/g" /etc/needrestart/needrestart.conf
+     sed -i "s/^intname=.*/intname=\"$gnic\"/g" /root/scripts/buildredteam.sh
+     sed -i "s/^CAserver=.*/CAserver=\"$caip\"/g" /root/scripts/buildredteam.sh
+     sed -i "s/^CAcert=.*/CAcert=\"int.$CA.crt.pem\"/g" /root/scripts/buildredteam.sh
+     apt install -y openjdk-11-jdk
+     update-java-alternatives -s java-1.11.0-openjdk-amd64
+     echo -e "$green Grabbing Cobalt Strike $default"
+     InstallCS="n"
+     while :
+     do
+       echo -ne "$ltblue\t Please enter your Cobalt Strike License (c to cancel): $default"
+       read csl
+       if [[ $csl = @(c|C) ]]; then break; fi
+       export TOKEN=$(curl -s https://download.cobaltstrike.com/download -d "dlkey=${csl}" | grep 'href="/downloads/' | cut -d '/' -f3) 
+       if [ ! -z $TOKEN ]; then
+         InstallCS="y"
+	 break
+       else 
+         echo -e "$red ERROR! $white Key entered is invalid, Please try again. $default"
+         sleep 2
+         clear
+       fi
+    done
+     if [ $InstallCS = "y" ]; then 
+       echo -e "$green Cobalt Strike License accepted! $default"
+       cd /root
+       wget https://download.cobaltstrike.com/downloads/${TOKEN}/latest46/cobaltstrike-dist.tgz
+       tar -zxf cobaltstrike-dist.tgz
+       rm cobaltstrike-dist.tgz
+       mv cobaltstrike cobaltstrike-local
+       sed -i "s/^java/java -Dhttp.proxyHost=$ProxyIP -Dhttp.proxyPort=$ProxyPort -Dhttps.proxyHost=$ProxyIP -Dhttps.proxyPort=$ProxyPort/g" /root/cobaltstrike-local/update
+       cd /root/cobaltstrike-local
+       echo -e "$green Updating Cobalt Strike. NOTE: It will ask for your license again, but you won't need to enter it. $default"
+       sleep 2
+       echo ${csl} | ./update
+       sleep 2
+     else
+       echo -e "$yellow Cobalt Strike install cancelled! $default"
+       sleep 2
+     fi 
+     cd /root
+     echo -e "$green Grabbing C2concealer $default"
+     export http_proxy=$Proxy
+     export https_proxy=$Proxy
+     apt install -y mutt python3-pip golang
+     cd /root
+     git clone https://github.com/FortyNorthSecurity/C2concealer
+     cd C2concealer
+     ./install.sh
+     cd /root
+     echo -e "$green Grabbing SourcePoint $default"
+     git clone https://github.com/Tylous/SourcePoint
+     cd /root/SourcePoint
+     go build SourcePoint.go
+     echo -e "$green Pulling docker images $default"
+     docker pull nginx
+     docker pull haproxy
+     docker pull httpd
+     if [ $InstallCS = "y" ]; then 
+       echo "FROM ubuntu" > /root/Dockerfile
+       echo "ENV http_proxy $Proxy" >> /root/Dockerfile
+       echo "ENV https_proxy $Proxy" >> /root/Dockerfile
+       echo "USER root" >> /root/Dockerfile
+       echo "RUN apt update && apt install --no-install-recommends -y openjdk-11-jdk && \ " >> /root/Dockerfile
+       echo "    apt clean && rm -rf /var/local/apt/lists/* /tmp/* /var/tmp/*" >> /root/Dockerfile
+       echo "RUN update-java-alternatives -s java-1.11.0-openjdk-amd64" >> /root/Dockerfile
+       docker build -t cobaltstrike /root
+     fi
+     debconf-set-selections <<< "postfix postfix/mailname string rts"
+     debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
+     apt install --assume-yes postfix
+     ssh-keygen -b 1024 -t rsa -f /root/.ssh/id_rsa -q -N ""
+     sshpass -p $CAPass ssh-copy-id -o StrictHostKeyChecking=no 180.1.1.50
+     sshpass -p $DNSPass ssh-copy-id -o StrictHostKeyChecking=no 198.41.0.4
      clear
      echo -e "$green Installation Complete! $default";;
   6) clear
