@@ -518,10 +518,9 @@ case $opt in
      wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1__Z5LllzuOA_HnVA6YsC47toHsmEo99d' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1__Z5LllzuOA_HnVA6YsC47toHsmEo99d" -O trafficsites.tar.gz && rm -rf /tmp/cookies.txt
      echo -e "$green Download complete, extracting sites. $default"
      sleep 2
-     tar -zxvf trafficsites.tar.gz 
-     cd sites
-     echo -e "$green Moving websites to /var/www/html. $default"
-     mv www.* /var/www/html/
+     tar -zxvf trafficsites.tar.gz -C /var/www/html
+     rm /var/www/html/index.html
+     mv /var/www/html/websites.txt /home/user
      echo -e "$green Configuring Apaching and setting IPs. $default"
      httpconf="TG_HTTP.conf"
      httpsconf="TG_HTTPS.conf"
@@ -530,7 +529,7 @@ case $opt in
      count=0
      sshpass -p toor ssh -o StrictHostKeyChecking=no 180.1.1.50 'echo prepping CA connection'
      echo -e "auto lo\niface lo inet loopback\n\nauto $anic\niface $anic inet dhcp" > /etc/network/interfaces
-     for x in `cat websites.txt`
+     for x in `cat /home/user/websites.txt`
      do
        # Seperate out list
        domain=`echo $x | cut -d, -f1`
