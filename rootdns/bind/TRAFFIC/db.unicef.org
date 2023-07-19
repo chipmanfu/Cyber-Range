@@ -1,9 +1,0 @@
-;Traffic-WebHost
-$TTL	86400
-@	IN	SOA	@	ns1.unicef.org. 42 3H 15M 1W 1D
-@	IN	NS		ns1.unicef.org.
-@	IN	MX	10	unicef.org.
-@	IN	A		23.194.169.4
-mail	IN	A		23.194.169.4
-www	IN	A		23.194.169.4
-ns1	IN	A		198.41.0.4

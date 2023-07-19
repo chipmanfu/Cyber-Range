@@ -1,9 +1,0 @@
-;Traffic-WebHost
-$TTL	86400
-@	IN	SOA	@	ns1.fda.gov. 42 3H 15M 1W 1D
-@	IN	NS		ns1.fda.gov.
-@	IN	MX	10	fda.gov.
-@	IN	A		104.78.231.230
-mail	IN	A		104.78.231.230
-www	IN	A		104.78.231.230
-ns1	IN	A		198.41.0.4

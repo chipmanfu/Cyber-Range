@@ -1,9 +1,0 @@
-;Traffic-WebHost
-$TTL	86400
-@	IN	SOA	@	ns1.umich.edu. 42 3H 15M 1W 1D
-@	IN	NS		ns1.umich.edu.
-@	IN	MX	10	umich.edu.
-@	IN	A		141.211.243.251
-mail	IN	A		141.211.243.251
-www	IN	A		141.211.243.251
-ns1	IN	A		198.41.0.4

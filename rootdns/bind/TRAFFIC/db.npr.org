@@ -1,9 +1,0 @@
-;Traffic-WebHost
-$TTL	86400
-@	IN	SOA	@	ns1.npr.org. 42 3H 15M 1W 1D
-@	IN	NS		ns1.npr.org.
-@	IN	MX	10	npr.org.
-@	IN	A		96.17.52.160
-mail	IN	A		96.17.52.160
-www	IN	A		96.17.52.160
-ns1	IN	A		198.41.0.4

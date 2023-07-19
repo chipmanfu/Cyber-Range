@@ -1,14 +1,7 @@
-zone "0.centos.pool.ntp.org." { type master; file "/etc/bind/blackhole/db.blackhole";};
 zone "0.rhel.pool.ntp.org.6." { type master; file "/etc/bind/blackhole/db.blackhole";};
-zone "1.centos.pool.ntp.org." { type master; file "/etc/bind/blackhole/db.blackhole";};
 zone "1.rhel.pool.ntp.org.6." { type master; file "/etc/bind/blackhole/db.blackhole";};
-zone "1.rhel.pool.ntp.org." { type master; file "/etc/bind/blackhole/db.blackhole";};
-zone "2.centos.pool.ntp.org." { type master; file "/etc/bind/blackhole/db.blackhole";};
-zone "2.pfsense.pool.ntp.org." { type master; file "/etc/bind/blackhole/db.blackhole";};
 zone "2.pfsense.pool.ntp.org.world.net." { type master; file "/etc/bind/blackhole/db.blackhole";};
-zone "2.rhel.pool.ntp.org.6." { type master; file "/etc/bind/blackhole/db.blackhole";};
 zone "3.centos.pool.ntp.org." { type master; file "/etc/bind/blackhole/db.blackhole";};
-zone "3.rhel.pool.ntp.org.6." { type master; file "/etc/bind/blackhole/db.blackhole";};
 zone "adservice.google.com." { type master; file "/etc/bind/blackhole/db.blackhole";};
 zone "android.clients.google.com." { type master; file "/etc/bind/blackhole/db.blackhole";};
 zone "api.github.com." { type master; file "/etc/bind/blackhole/db.blackhole";};

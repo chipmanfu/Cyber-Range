@@ -1,9 +1,0 @@
-;Traffic-WebHost
-$TTL	86400
-@	IN	SOA	@	ns1.columbia.edu. 42 3H 15M 1W 1D
-@	IN	NS		ns1.columbia.edu.
-@	IN	MX	10	columbia.edu.
-@	IN	A		128.59.105.24
-mail	IN	A		128.59.105.24
-www	IN	A		128.59.105.24
-ns1	IN	A		198.41.0.4

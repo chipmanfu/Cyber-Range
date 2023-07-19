@@ -1,5 +1,5 @@
-;Traffic-WebHost
-$TTL	86400
+;Traffic-SMTP
+$TTL 3600
 @	IN	SOA	@	ns1.msn.com. 42 3H 15M 1W 1D
 @	IN	NS		ns1.msn.com.
 @	IN	MX	10	msn.com.

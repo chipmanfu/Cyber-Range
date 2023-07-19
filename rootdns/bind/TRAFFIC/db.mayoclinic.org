@@ -1,9 +1,0 @@
-;Traffic-WebHost
-$TTL	86400
-@	IN	SOA	@	ns1.mayoclinic.org. 42 3H 15M 1W 1D
-@	IN	NS		ns1.mayoclinic.org.
-@	IN	MX	10	mayoclinic.org.
-@	IN	A		23.34.77.116
-mail	IN	A		23.34.77.116
-www	IN	A		23.34.77.116
-ns1	IN	A		198.41.0.4

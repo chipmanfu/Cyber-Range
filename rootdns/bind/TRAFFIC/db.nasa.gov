@@ -1,9 +1,0 @@
-;Traffic-WebHost
-$TTL	86400
-@	IN	SOA	@	ns1.nasa.gov. 42 3H 15M 1W 1D
-@	IN	NS		ns1.nasa.gov.
-@	IN	MX	10	nasa.gov.
-@	IN	A		13.249.85.107
-mail	IN	A		13.249.85.107
-www	IN	A		13.249.85.107
-ns1	IN	A		198.41.0.4
