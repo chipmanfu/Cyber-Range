@@ -4,7 +4,12 @@ source /opt/vyatta/etc/functions/script-template
 
 configure
 set interfaces ethernet eth1 address 8.8.8.1/24
+set interfaces ethernet eth1 address 67.23.44.1/24
+set interfaces ethernet eth1 address 70.32.91.1/24
+set interfaces ethernet eth1 address 72.32.4.1/24
+set interfaces ethernet eth1 address 92.107.127.1/24
 set interfaces ethernet eth1 address 180.1.1.1/24
+set interfaces ethernet eth1 address 188.65.120.1/24
 set interfaces ethernet eth1 address 192.5.5.1/24
 set interfaces ethernet eth1 address 192.33.4.1/24
 set interfaces ethernet eth1 address 192.36.148.1/24
