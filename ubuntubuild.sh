@@ -579,19 +579,19 @@ case $opt in
        echo "<VirtualHost *:80>" >> $httpconf
        echo "    ServerAdmin webmaster@$tld" >> $httpconf
        echo "    ServerName $tld" >> $httpconf
-       echo "    ServerAlias $domain" >> $httpconf
+       echo "    ServerAlias www.$tld" >> $httpconf
 #       echo "    ServerAlias $ip" >> $httpconf
-       echo "    DocumentRoot /var/www/html/$domain" >> $httpconf
+       echo "    DocumentRoot /var/www/html/$tld" >> $httpconf
        echo "    ErrorLog \${APACHE_LOG_DIR}/error.log" >> $httpconf
        echo "    CustomLog \${APACHE_LOG_DIR}/access.log combined" >> $httpconf
        echo "</VirtualHost>" >> $httpconf
        # configure HTTPS
        echo "<VirtualHost *:443>" >> $httpsconf
        echo "    ServerName \"$tld\"" >> $httpsconf
-       echo "    ServerAlias \"$domain\"" >> $httpsconf
+       echo "    ServerAlias \"www.$tld\"" >> $httpsconf
 #       echo "    ServerAlias $ip" >> $httpsconf
        echo "    ServerAdmin webmaster@$tld" >> $httpsconf
-       echo "    DocumentRoot /var/www/html/$domain" >> $httpsconf
+       echo "    DocumentRoot /var/www/html/$tld" >> $httpsconf
        echo "    ErrorLog \${APACHE_LOG_DIR}/error.log" >> $httpsconf
        echo "    CustomLog \${APACHE_LOG_DIR}/access.log combined" >> $httpsconf
        echo "    SSLEngine on" >> $httpsconf
