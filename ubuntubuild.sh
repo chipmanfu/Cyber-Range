@@ -36,13 +36,13 @@ iapnic2="dhcp"
 rootdnsnic1="dhcp"
 rootdnsnic2="8.8.8.8/24
              198.41.0.4/24  
-             192.228.79.59/24 
+             199.9.14.201/24 
              192.33.4.12/24 
-             128.8.10.90/24 
+             199.7.91.13/24 
              192.203.230.10/24 
              195.5.5.241/24 
              192.112.36.4/24
-             128.63.2.53/24 
+             198.97.190.53/24 
              192.36.148.17/24 
              192.58.128.30/24 
              193.0.14.129/24 
@@ -558,8 +558,11 @@ case $opt in
      chmod 755 /tmp/Eth1TrafficWebHosts.sh
      for subnet in $routes
      do
-       echo "set interfaces eth1 address $subnet.1/24" >> /tmp/Eth1TrafficWebHosts.sh
+       echo "set interfaces ethernet eth1 address $subnet.1/24" >> /tmp/Eth1TrafficWebHosts.sh
      done
+     echo "commit" >> /tmp/Eth1TrafficWebHosts.sh
+     echo "save" >> /tmp/Eth1TrafficWebHosts.sh
+     echo "exit" >> /tmp/Eth1TrafficWebHosts.sh
      # Copy script to SI_Router and run it
      sshpass -p $SIPass scp -o StrictHostKeyChecking=no /tmp/Eth1TrafficWebHosts.sh vyos@172.30.7.254:/home/vyos/Scripts/
      sshpass -p $SIPass ssh -o StrictHostKeyChecking=no vyos@172.30.7.254 '/home/vyos/Scripts/Eth1TrafficWebHosts.sh'
