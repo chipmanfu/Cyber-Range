@@ -27,6 +27,7 @@ capempass="password"
 Proxy="http://$ProxyIP:$ProxyPort"
 CAPass=$MasterRootPass
 DNSPass=$MasterRootPass
+SIPass=$MasterRootPass
 # Network Interfaces for various builds.
 # IA Proxy IP settings
 iapnic1="$ProxyIP/$ProxySub"
@@ -520,28 +521,24 @@ case $opt in
      sleep 2
      tar -zxvf trafficsites.tar.gz -C /var/www/html
      rm /var/www/html/index.html
-     mv /var/www/html/websites.txt /home/user
-     echo -e "$green Configuring Apaching and setting IPs. $default"
-     httpconf="TG_HTTP.conf"
-     httpsconf="TG_HTTPS.conf"
-     echo "" > $httpconf
-     echo "" > $httpsconf
-     count=0
-     sshpass -p toor ssh -o StrictHostKeyChecking=no 180.1.1.50 'echo prepping CA connection'
+     mv /var/www/html/websites.txt /tmp/
+
+     sshpass -p $CAPass ssh -o StrictHostKeyChecking=no root@180.1.1.50 'echo prepping CA connection'
      echo -e "auto lo\niface lo inet loopback\n\nauto $anic\niface $anic inet dhcp" > /etc/network/interfaces
-     for x in `cat /home/user/websites.txt`
+     # Seperate website list into the following;
+     #   domains (for registing with rootDNS and configuring virtual host on apache)
+     #   ips (for assigning IPS to traffic-WebHost VM)
+     #   routes (to add to the SI_router via script)
+     routes=`cut -d, -f2 /tmp/websites.txt | cut -d. -f1-3 | sort -t . -k 1,1n -k 2,2n -k 3,3n | uniq`
+     ips=`cut -d, -f2 /tmp/websites.txt | sort -t . -k 1,1n -k 2,2n -k 3,3n -k 4,4n | uniq`
+     domains=`cut -d, -f2 /tmp/websites.txt | sort | uniq`
+     echo -e "$green Configuring IPs. $default"
+     # Configure /etc/network/interfaces
+     count=0
+     # set all IPs as /24 networks.
+     cidr=24
+     for ip in $ips
      do
-       # Seperate out list
-       domain=`echo $x | cut -d, -f1`
-       ip=`echo $x | cut -d, -f2`
-       if echo $ip | grep -q / 
-       then 
-         cidr=`echo $ip | cut -d/ -f2`
-       else # assume a /24
-         cidr="24"
-       fi
-       tld=`echo $domain | sed 's/www.//g'`
-       #configure IP
        if [[ $count == 0 ]]; then
          echo -e "\nauto $gnic\niface $gnic inet static\n\taddress $ip/$cidr" >> /etc/network/interfaces
          first3octets=`echo $ip | cut -d. -f1,2,3`
@@ -552,12 +549,35 @@ case $opt in
          echo -e "\nauto $gnic:$count\niface $gnic:$count inet static\n\taddress $ip/$cidr" >> /etc/network/interfaces
          let count++
        fi
+     done
+     # Build script for SI_router for all webhost IPs.
+     echo -e "$green Configuring routes for the SI_router. $default"
+     echo "#!/bin/vbash" > /tmp/Eth1TrafficWebHosts.sh
+     echo "source /opt/vyatta/etc/functions/script-template" >> /tmp/Eth1TrafficWebHosts.sh
+     echo "configure" >> /tmp/Eth1TrafficWebHosts.sh
+     chmod 755 /tmp/Eth1TrafficWebHosts.sh
+     for subnet in $routes
+     do
+       echo "set interfaces eth1 address $subnet.1/24" >> /tmp/Eth1TrafficWebHosts.sh
+     done
+     # Copy script to SI_Router and run it
+     sshpass -p $SIPass scp -o StrictHostKeyChecking=no /tmp/Eth1TrafficWebHosts.sh vyos@172.30.7.254:/home/vyos/Scripts/
+     sshpass -p $SIPass ssh -o StrictHostKeyChecking=no vyos@172.30.7.254 '/home/vyos/Scripts/Eth1TrafficWebHosts.sh'
+     echo -e "$green Configure Apache Web server and Generate SSL Certs via the CA-Server. $default"     
+     # Configure Apache webserver
+     httpconf="TG_HTTP.conf"
+     httpsconf="TG_HTTPS.conf"
+     echo "" > $httpconf
+     echo "" > $httpsconf
+     for domain in $domains
+     do 
+       tld=`echo $domain | sed 's/www.//g'`
        # configure HTTP
        echo "<VirtualHost *:80>" >> $httpconf
        echo "    ServerAdmin webmaster@$tld" >> $httpconf
        echo "    ServerName $tld" >> $httpconf
        echo "    ServerAlias $domain" >> $httpconf
-       echo "    ServerAlias $ip" >> $httpconf
+#       echo "    ServerAlias $ip" >> $httpconf
        echo "    DocumentRoot /var/www/html/$domain" >> $httpconf
        echo "    ErrorLog \${APACHE_LOG_DIR}/error.log" >> $httpconf
        echo "    CustomLog \${APACHE_LOG_DIR}/access.log combined" >> $httpconf
@@ -566,7 +586,7 @@ case $opt in
        echo "<VirtualHost *:443>" >> $httpsconf
        echo "    ServerName \"$tld\"" >> $httpsconf
        echo "    ServerAlias \"$domain\"" >> $httpsconf
-       echo "    ServerAlias $ip" >> $httpsconf
+#       echo "    ServerAlias $ip" >> $httpsconf
        echo "    ServerAdmin webmaster@$tld" >> $httpsconf
        echo "    DocumentRoot /var/www/html/$domain" >> $httpsconf
        echo "    ErrorLog \${APACHE_LOG_DIR}/error.log" >> $httpsconf
@@ -576,9 +596,9 @@ case $opt in
        echo "    SSLCertificateKeyFile /etc/ssl/private/$tld.key" >> $httpsconf
        echo "</VirtualHost>" >> $httpsconf
        # Get SSL Cert
-       sshpass -p $CAPass ssh 180.1.1.50 "/root/scripts/certmaker.sh -d $tld -q -r"
-       sshpass -p $CAPass scp 180.1.1.50:/var/www/html/$tld.crt /etc/ssl/certs/
-       sshpass -p $CAPass scp 180.1.1.50:/var/www/html/$tld.key /etc/ssl/private/
+       sshpass -p $CAPass ssh root@180.1.1.50 "/root/scripts/certmaker.sh -d $tld -q -r"
+       sshpass -p $CAPass scp root@180.1.1.50:/var/www/html/$tld.crt /etc/ssl/certs/
+       sshpass -p $CAPass scp root@180.1.1.50:/var/www/html/$tld.key /etc/ssl/private/
      done
      mv $httpconf /etc/apache2/sites-available/
      mv $httpsconf /etc/apache2/sites-available/
@@ -589,5 +609,8 @@ case $opt in
      service networking restart
      systemctl reload apache2
      clear
+     echo -e "$green Register Domains on RootDNS server. $default"
+     sshpass -p $DNSPass scp /tmp/websites.txt 198.41.0.4:/root/scripts/
+     sshpass -p $DNSPass ssh 198.41.0.4 '/root/scripts/add-TRAFFIC-DNS.sh /root/scripts/websites.txt'
      echo -e "$green Installation Complete! $default";;
 esac
