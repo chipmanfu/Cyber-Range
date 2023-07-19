@@ -613,7 +613,7 @@ case $opt in
      systemctl reload apache2
      clear
      echo -e "$green Register Domains on RootDNS server. $default"
-     sshpass -p $DNSPass scp /tmp/websites.txt 198.41.0.4:/root/scripts/
-     sshpass -p $DNSPass ssh 198.41.0.4 '/root/scripts/add-TRAFFIC-DNS.sh /root/scripts/websites.txt'
+     sshpass -p $DNSPass scp -o StrictHostKeyChecking=no /tmp/websites.txt 198.41.0.4:/root/scripts/
+     sshpass -p $DNSPass ssh -o StrictHostKeyChecking=no 198.41.0.4 '/root/scripts/add-TRAFFIC-DNS.sh /root/scripts/websites.txt'
      echo -e "$green Installation Complete! $default";;
 esac
