@@ -531,7 +531,7 @@ case $opt in
      #   routes (to add to the SI_router via script)
      routes=`cut -d, -f2 /tmp/websites.txt | cut -d. -f1-3 | sort -t . -k 1,1n -k 2,2n -k 3,3n | uniq`
      ips=`cut -d, -f2 /tmp/websites.txt | sort -t . -k 1,1n -k 2,2n -k 3,3n -k 4,4n | uniq`
-     domains=`cut -d, -f2 /tmp/websites.txt | sort | uniq`
+     domains=`cut -d, -f1 /tmp/websites.txt | sort | uniq`
      echo -e "$green Configuring IPs. $default"
      # Configure /etc/network/interfaces
      count=0
