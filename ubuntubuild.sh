@@ -415,7 +415,7 @@ case $opt in
      tar -xvzf images.tar.gz
      docker cp images bookstack:/app/www/public/uploads
      docker cp files bookstack:/config/www
-     docker exec -i bookstack chown -R abc:users /config/www/files
+     docker exec -i bookstack chown -R abc:users /config/www
      clear
      echo -e "$green Installation Complete! $default";;
 
