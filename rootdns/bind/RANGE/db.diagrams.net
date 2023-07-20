@@ -1,0 +1,6 @@
+$TTL 3600
+@	IN	SOA	@	ns1.diagrams.net. 42 3H 15M 1W 1D
+@	IN	NS		ns1.diagrams.net.
+@	IN	A		180.1.1.130	
+*	IN	A		180.1.1.130
+ns1	IN	A		198.41.0.4
