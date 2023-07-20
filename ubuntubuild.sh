@@ -416,7 +416,6 @@ case $opt in
      docker cp images bookstack:/app/www/public/uploads
      docker cp files bookstack:/config/www
      docker exec -i bookstack chown -R abc:users /config/www/files
-     docker exec -i bookstack chown -R abc:users /app/www/public/uploads
      clear
      echo -e "$green Installation Complete! $default";;
 
