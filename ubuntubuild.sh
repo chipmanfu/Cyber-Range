@@ -366,7 +366,7 @@ case $opt in
      if echo $existingcerts | grep diagrams.net.crt > /dev/null; then
        echo "diagrams.net certs exists, skipping creation"
      else
-       sshpass -p $CAPass ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d diagrams.net -C US -ST Idaho -L Boise -O 'draw corp' -CN diagrams.net -A diagrams -DNS1 diagrams.net -DNS2 embed.diagrams.net"
+       sshpass -p $CAPass ssh 180.1.1.50 "/root/scripts/certmaker.sh -q -d diagrams.net -C US -ST Idaho -L Boise -O 'draw corp' -CN diagrams.net -A diagrams -DNS1 diagrams.net -DNS2 embed.diagrams.net -DNS3 log.diagrams.net"
      fi
      if echo $existingcerts | grep msftconnecttest.com.crt > /dev/null; then
        echo "msftconnecttest.com certs exists, skipping creation"
