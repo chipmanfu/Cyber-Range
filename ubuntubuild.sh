@@ -352,6 +352,10 @@ case $opt in
      cp -r webservices/ms_sites /root
      mkdir -p /root/ms_sites/SSL
      cp -r webservices/ntp /root
+     cp -r webservices/scripts /root
+     mkdir -p /root/backups
+     mkdir -p /root/backups/redbook
+     mkdir -p /root/backups/dropbox
      echo -e "$green Pulling SSL certs for dropbox.com, pastebin.com, diagams.net, redbook.com, and msftconnecttest.com $default"
      sleep 2
      existingcerts=`sshpass -p $CAPass ssh -o StrictHostKeyChecking=no 180.1.1.50 'ls /var/www/html'`
@@ -414,6 +418,15 @@ case $opt in
      sleep 2
      cd /root/drawio
      docker-compose up -d
+     clear
+     echo -e "$green Setting up backup automation for Bookstack and Owncloud $default"
+     crontab -l > cronjbs
+     echo "0 1 * * 1 /root/scripts/redbook/redbook_backup.sh" >> cronjbs
+     echo "0 2 * * 1 ls /root/backups/redbook/ -t | tail -n +4 | xargs rm -- 2>/dev/null" >> cronjbs
+     echo "0 3 * * 1 /root/scripts/dropbox/dropbox_backup.sh" >> cronjbs
+     echo "0 4 * * 1 ls /root/backups/dropbox/ -t | tail -n +4 | xargs rm -- 2>/dev/null" >> cronjbs
+     crontab cronjbs
+     rm cronjbs
      clear
      echo -e "$green Setting up Bookstack and populating it with the Cyber Range documentation $default"
      cd /root/redbook
