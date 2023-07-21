@@ -187,9 +187,9 @@ apt autoremove -y
 rm -fr /root/snap
 clear
 echo -e "$green Disabling unnecssary services $default"
-systemctl stop systemd-resolve.service systemd-timesyncd.service
-systemctl disable system-resolve.service systemd-timesyncd.service
-systemctl mask system-resolve.service systemd-timesyncd.service
+systemctl stop systemd-resolve.service
+systemctl disable system-resolve.service
+systemctl mask system-resolve.service
 rm /etc/resolv.conf
 echo "nameserver 8.8.8.8" > /etc/resolv.conf
 clear
