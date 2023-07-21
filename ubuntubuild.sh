@@ -193,6 +193,13 @@ systemctl mask system-resolve.service systemd-timesyncd.service
 rm /etc/resolv.conf
 echo "nameserver 8.8.8.8" > /etc/resolv.conf
 clear
+echo -e "$green set up some log management $default"
+crontab -l > cronjbs
+echo " 0 1 * * * /usr/bin/find /var/log -name '*.gz' -exec rm -f {} \;" >> cronjbs
+crontab cronjbs
+rm cronjbs
+sed -i 's/#SystemMaxUse=*/SystemMaxUse=100M/g' /etc/systemd/journald.conf
+clear
 echo -e "$green Installing needed applications $default"
 sleep 2
 apt install -y ifupdown net-tools curl make figlet ipcalc traceroute dos2unix sshpass
