@@ -33,7 +33,7 @@ zone "redbook.com." IN {
 };
 zone "diagrams.net." IN {
 	type master;
-	file "RANGE/db.diagrams.com";
+	file "RANGE/db.diagrams.net";
 	allow-query { any; };
 	allow-update { none; };
 };
