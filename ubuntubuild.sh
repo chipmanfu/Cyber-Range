@@ -195,7 +195,7 @@ echo "nameserver 8.8.8.8" > /etc/resolv.conf
 clear
 echo -e "$green set up some log management $default"
 crontab -l > cronjbs
-echo " 0 1 * * * /usr/bin/find /var/log -name '*.gz' -exec rm -f {} \;" >> cronjbs
+echo "0 1 * * * /usr/bin/find /var/log -name '*.gz' -exec rm -f {} \;" >> cronjbs
 crontab cronjbs
 rm cronjbs
 sed -i 's/#SystemMaxUse=*/SystemMaxUse=100M/g' /etc/systemd/journald.conf
