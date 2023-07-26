@@ -445,6 +445,7 @@ CityMenu()
 
 SetIPOption()
 {
+  TSIP=;
   MenuBanner
   echo -e "\n\t$ltblue Do you want to get random IPs or set them manually?"
   Format2Options 1 "Set random IPs"
@@ -476,7 +477,7 @@ SetIPOption()
 
 ManualIPMenu()
 {
-  sIPin=
+  staticIPsel=
   MenuBanner
   echo -e "\n\t$ltblue Please enter an IP that's within the County/city orgin subnet below"
   echo -e "\t$ltblue Enter [s] to see ip ranges for the country/city selected."
