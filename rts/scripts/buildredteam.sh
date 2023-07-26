@@ -4,14 +4,14 @@
 
 #### Secret Menu ## default is bridge, set this to zero, to start a teamserver on the host
 #####  network.  If you do this, you'll need to always set teamserver listener "bind to" 
-#####  ports to something non-standard.
+#####  ports to something non-standard.  This is experimental, not fully tested.
 tsbridge=1
 
 ##### ENVIRONMENT SPECIFIC VARIABLES ####
 intname="ens34"
 CAserver="180.1.1.50"
 capass="toor"
-CAcrtpath="/root/ca/intermediate/certs"  # Need to get CA cert for Apache SSL server
+CAcrtpath="/root/ca/intermediate/certs"  # Needed to get CA cert for Apache SSL server
 CAcert="int.globalcert.com.crt.pem"
 rootDNS="198.41.0.4"                     # This is the IP for the Root DNS server
 rootpass="toor"
@@ -129,6 +129,7 @@ MenuBanner()
     4) bannertitle="Set up a payload host Container";;
     5) bannertitle="Set up a phishing attack";;
     6) bannertitle="Container Management";;
+    7) bannertitle="Modify Redirector Destination IP";;
     *) bannertitle="Not Red Team Server Docker Build Script";;
   esac
   printf "\n\t$ltblue %-60s %8s\n"  "$bannertitle" "<b>-Back"
@@ -152,8 +153,13 @@ ShowCurrentSettings()
   if [[ $randomdns == 1 ]]; then SettingFormat "Set DNS" "Randomly"; fi
   if [[ ! -z $haprofile ]]; then SettingFormat "C2 Profile" "$haprofile"; fi
   if [[ ! -z $tsprofile ]]; then SettingFormat "C2 Profile" "$csc2profilesel"; fi
+  if [[ ! -z $keystoresel ]]; then SettingFormat "Keystore" "$keystoresel"; fi
+  if [[ ! -z $keystorealiassel ]]; then SettingFormat "Kestore Alias" "$keystorealiassel"; fi
   if [[ ! -z $decoysite ]]; then SettingFormat "HA Proxy Decoy site" "$decoysite"; fi
   if [[ ! -z $passwordsel ]]; then SettingFormat "Password" "$passwordsel"; fi
+  if [[ ! -z $RDsel ]]; then SettingFormat "Redirector to modify" "$RDsel"; fi
+  if [[ ! -z $curredirip ]]; then SettingFormat "Current Dest IP" "$curredirip"; fi
+  if [[ ! -z $newrediripsel ]]; then SettingFormat "New Dest IP" "$newrediripsel"; fi
   echo -ne "$default"
 }
 
@@ -209,7 +215,7 @@ MainMenu()
 {
   # Set initial variables, Resets values if user navigates back to the beginning
   opt=0; setnginx=0; sethaproxy=0; setcsts=0; setpayload=0; setphish=0; totalipssel=;
-  tmpsrvpath=
+  tmpsrvpath=;changeredir=;
   # Calls menu Banner
   MenuBanner
   # List options, get user input, process the input.
@@ -223,6 +229,7 @@ MainMenu()
   Format2Options 4 "Set up a payload host server"
   Format2Options 5 "Set up phishing attack"
   Format2Options 6 "Container Management"
+  Format2Options 7 "Change existing redirectors destination IP"
   echo -en "\n\t$ltblue Enter a Selection: $default"
   read optin
   case $optin in
@@ -251,12 +258,14 @@ MainMenu()
        echo "$service" > $tmpsrvpath/ServiceInfo.txt
        CountryMenu;;
     6) opt=6; ContainerMenu;;
+    7) opt=7; changeredir=1; SelectRedirMenu;;
     b|B) MainMenu;;
     q|Q) UserQuit;;
     *) InputError
        MainMenu;;
   esac
 }
+
 
 ServiceTagMenu()
 {
@@ -326,6 +335,53 @@ NumIPsMenu()
         fi;;
   esac
 }
+
+SelectRedirMenu()
+{
+  count=1; RDsel=; curredirip=
+  MenuBanner
+  echo -e "\n\t$ltblue Select the Redirector that you want to modify"
+  echo -e "\t$ltblue the redirector destination IP on"
+  for RD in `grep -irl Redirected /root/services/*/ServiceInfo.txt | cut -d/ -f4`; do
+    curIP=`grep "Redirected to" /root/services/$RD/ServiceInfo.txt | cut -d" " -f4`
+    Format2Options "$count" "$RD Currently set to ($curIP)"
+    let "count++";
+  done
+  echo -ne "\n\t$ltblue Enter a Selection: $default"
+  read RDin
+  case $RDin in
+    q|Q) UserQuit;;
+    b|B) MainMenu;;
+      *) if (( $RDin >= 1 && $RDin < $count )) 2>/dev/null; then
+           RDsel=`grep -irl Redirected /root/services/*/ServiceInfo.txt | cut -d/ -f4 | sed -n ${RDin}p`
+           curredirip=`grep "Redirected to" /root/services/$RD/ServiceInfo.txt | cut -d" " -f4`
+           SetNewRedirIPMenu
+         else
+           InputError
+           SelectRedirMenu
+         fi;;
+  esac
+}  
+
+SetNewRedirIPMenu()
+{
+  MenuBanner
+  echo -e "\n\t$ltblue Set New Destination IP for redirector $RDsel"
+  echo -ne "\t$ltblue Enter the IP you want to redirect to Here: $white"
+  read newredirip
+  case $newredirip in
+    q|Q) UserQuit;;
+    b|B) SelectRedirMenu;;
+      *) newrediripsel=$newredirip;;
+  esac
+  CheckIP $newredirip
+  if [[ $? -eq 0 ]]; then
+    ExecAndValidate 
+  else
+    InputError
+    SetNewRedirIPMenu
+  fi
+}  
 
 CountryMenu()
 {
@@ -891,9 +947,19 @@ RandomSSLGen()
     scp $CAserver:/var/www/html/$cdomain.crt $srvpath/SSL &>/dev/null
     scp $CAserver:/var/www/html/$cdomain.p12 $srvpath/SSL &>/dev/null
     scp $CAserver:/var/www/html/$cdomain.pem $srvpath/SSL &>/dev/null
+    scp $CAserver:/var/www/html/cs.$cdomain.p12 $srvpath/SSL &> /dev/null
   done<$srvpath/OPFOR-DNS.txt
 }
 
+GenKeystore()
+{
+  for x in `ls $srvpath/SSL/cs.*`
+  do
+    TLD=`echo $x | rev | cut -d . -f2,3 | rev`
+    keytool -importkeystore -srckeystore $x -srcstoretype PKCS12 -destkeystore $srvpath/SSL/keystore.jks -deststoretype JKS -srcalias $TLD -destalias $TLD -srcstorepass password -deststorepass password &> /dev/null
+  done
+}
+    
 ContainerMenu()
 {
   copt=; caction=
@@ -1071,6 +1137,9 @@ BuildDockerContainer()
   if [[ $setcsts == 1 ]]; then
     echo "      - $srvpath/$confpath2" >> $composefile
     echo "      - $srvpath/$confpath3" >> $composefile
+    if [[ ! -z "$keystoresel" ]]; then
+      echo "      - $keystoresel:/keystore.jks" >> $composefile
+    fi
     if [[ $tsbridge == 1 ]]; then
       echo "    ports:" >> $composefile
       echo "      - $tsip:50050:50050/tcp" >> $composefile
@@ -1130,7 +1199,7 @@ csc2profileMenu()
              tsprofile=$csc2profilesel
              cp $csc2path/$tsprofile $tmpsrvpath/$tsprofile 
              echo "Profile: $tsprofile" >> $tmpsrvpath/ServiceInfo.txt
-             csc2passwdMenu
+             CSKeystoreMenu
            fi
          else
            InputError
@@ -1139,6 +1208,78 @@ csc2profileMenu()
    esac
 }
 
+CSKeystoreMenu()
+{
+  MenuBanner
+  keystoresel=
+  numstores=`ls $basesrvpath/*/*/keystore.jks | wc -l`
+  if [[ $numstores -le 0 ]]; then 
+    echo -e "\n\t$red There are no keystores on this NRTS, if you want to use"
+    echo -e "\t$red use code-signing features in CobaltStrike, built a redirector first"
+    echo -e "\t$ltblue Press <return> to continue $default"
+    read nothing
+    csc2passwdMenu
+  else
+    count=1
+    echo -e "\n\t$ltblue Select the redirectors Java Keystore to use for this teamserver.$ltblue"
+    for keystore in `ls $basesrvpath/*/*/keystore.jks`; do
+      redir=`echo $keystore | rev | cut -d/ -f3 | rev`
+      Format2Options "$count" "$redir"
+      let "count++";
+    done
+    Format2Options "D" "Don't use a keystore"
+    echo -ne "\n\t$ltblue Enter Selection Here: $default"
+    read redir
+    case $redir in
+      q|Q) UserQuit;;
+      b|B) csc2profileMenu;;
+      d|D) keystoresel=; csc2passwdMenu;;
+        *) if (( $redir >= 1 && $redir < $count )) 2>/dev/null; then
+             keystoresel=`ls $basesrvpath/*/SSL/keystore.jks | sed -n ${redir}p`
+              echo "Keystore from: $keystoresel" >> $tmpsrvpath/ServiceInfo.txt
+              CSKeystoreAliasMenu
+           else
+             InputError
+             CSKeystoreMenu
+           fi;;
+    esac
+  fi
+}
+
+CSKeystoreAliasMenu()
+{
+  MenuBanner
+  keystorealiassel=
+  numalias=`keytool -list -keystore $keystoresel -storepass password 2>/dev/null | grep PrivateKeyEntry | wc -l`
+  if [[ $numalias -le 0 ]]; then
+    echo -e "\n\t$red the keystore at $keystoresel has no aliases, was this made manually?"
+    echo -e "\t$red This keystore won't work with Cobalt Strike, keystore will not be used"
+    echo -e "\t$ltblue Press <return> to continue $default"
+    read nothing
+    csc2passwdMenu
+  else
+    count=1
+    echo -e "\n\t$ltblue The selected keystore has the following aliases, please select one.$ltblue"
+    for a in `keytool -list -keystore $keystoresel -storepass password 2>/dev/null | grep PrivateKeyEntry | cut -d, -f1`
+    do
+       Format2Options "$count" "$a"
+       let "count++";
+    done
+    echo -ne "\n\t$ltblue Enter a Selection Here: $default"
+    read aliasin 
+    case $aliasin in 
+      q|Q) UserQuit;;
+      b|B) CSKeystoreMenu;;
+        *) if (( $aliasin >= 1 && $aliasin < $count )) 2>/dev/null; then
+             keystorealiassel=`keytool -list -keystore $keystoresel -storepass password 2>/dev/null | grep PrivateKeyEntry | cut -d, -f1 | sed -n ${aliasin}p`
+             csc2passwdMenu
+           else
+             InputError
+             CSKeystoreAliasMenu
+           fi;;
+    esac
+  fi
+}
 DecoyMenu()
 {
   MenuBanner
@@ -1174,7 +1315,7 @@ csc2passwdMenu()
   read passwordin
   case $passwordin in
     q|Q)  UserQuit;;
-    b|B)  csc2profilesel=; csc2profileMenu;;
+    b|B)  CSKeystoreMenu;;
     *\ *) echo -e "\n\t\t$red Password can't have spaces, Please try again$default"; sleep 2
           csc2passwdMenu;;
      "")  echo -e "\n\t\t$red Password can't be blank, Please try again$default"; sleep 2
@@ -1603,6 +1744,7 @@ ExecAndValidate()
     3) echo -e "\n\t$ltblue Setting up a Cobalt Strike TeamServer using above settings";;
     4) echo -e "\n\t$ltblue Setting up a Payload Host using the above settings";;
     5) echo -e "\n\t$ltblue Setting up for Phish attacks using the above settings";;
+    7) echo -e "\n\t$ltblue Changing Redirectors Destination IP using the above settings";;
     *) echo -e "\n\t$red Not sure how you broke the script, but you did! opt=$opt";;
   esac
   # based on main menu selection, execute set scripts.
@@ -1616,13 +1758,30 @@ ExecAndValidate()
            3) DNSTagMenu; return;;
            4) DNSTagMenu; return;;
            5) DNSTagMenu; return;;
+           7) SetNewRedirIPMenu; return;;
          esac
          exit;;
     *) MenuBanner;;
   esac
   # add a return to seperate script execution output.
   echo ""
-  
+  # A lot of the code below is common requirements for most options
+  # changing an existing redirector destination IP doesn't need/want to do some
+  # of these steps, so we'll process any redirector destination IPs first and exit
+  # if that is what the script is doing.
+  if [[ $changeredir == 1 ]]; then
+    echo -ne "\t$yellow Modifying $RDin Configurations ... $default"
+    sed -i "s/$curredirip/$newrediripsel/g" $basesrvpath/$RDsel/ServiceInfo.txt
+    sed -i "s/$curredirip/$newrediripsel/g" $basesrvpath/$RDsel/config/*
+    echo -e "$green Finished! $default"
+    echo -ne "\t$yellow Stopping $RDin Docker Container now... $default"
+    docker-compose -f $basesrvpath/$RDsel/docker-compose.yml down &>/dev/null
+    echo -e "$green Finished! $default"
+    echo -ne "\t$yellow Starting $RDin Docker Container now... $defualt"
+    docker-compose -f $basesrvpath/$RDsel/docker-compose.yml up -d &>/dev/null
+    echo -e "$green Finished! $default"
+    exit 0
+  fi
   # Create service path folder and move tmpsrvpath data to it.
   srvpath="$basesrvpath/$srvtag"
   if [[ $setphish == 1 ]]; then
@@ -1649,6 +1808,10 @@ ExecAndValidate()
     echo -ne "\t$yellow Generating SSL certs Now.... $default"
     RandomSSLGen
     echo -e "\t$green Finished! $default"
+    sleep 2
+    echo -ne "\t$yellow Creating Code-signing Java Keystore Now... $default"
+    GenKeystore
+    echo -e "\t$green Finished! $default"
   fi  
   if [[ $setnginx == 1 ]]; then
     echo -ne "\t$yellow Building NGINX.conf for redirection Now.... $default"
@@ -1667,6 +1830,14 @@ ExecAndValidate()
     if [[ $tsbridge != 1 ]]; then
       tsip=`grep -v "^#" $srvpath/$IPlist | cut -d '/' -f1`
       sed -i "s/0.0.0.0/$tsip/g" $srvpath/cobaltstrike/teamserver
+    fi
+    if [[ ! -z $keystoresel ]]; then
+      sed -i '/code-signer/,/}/d' $srvpath/$tsprofile
+      echo "code-signer {" >> $srvpath/$tsprofile
+      echo "	set keystore \"keystore.jks\";" >> $srvpath/$tsprofile
+      echo "    set password \"password\";" >> $srvpath/$tsprofile
+      echo "    set alias \"$keystorealiassel\";" >> $srvpath/$tsprofile      
+      echo "}" >> $srvpath/$tsprofile
     fi
   elif [[ $setphish == 1 ]]; then
     phishDNS=`grep -v "^#" $srvpath/$DNSlist | cut -d, -f1`
