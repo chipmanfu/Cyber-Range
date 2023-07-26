@@ -1,6 +1,6 @@
 #!/bin/bash
 count=1
-backuppath="/root/backups/owncloud"
+backuppath="/root/backups/dropbox"
 
 Format2Options()
 {

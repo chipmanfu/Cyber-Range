@@ -5,7 +5,18 @@
 #### Secret Menu ## default is bridge, set this to zero, to start a teamserver on the host
 #####  network.  If you do this, you'll need to always set teamserver listener "bind to" 
 #####  ports to something non-standard.  This is experimental, not fully tested.
+#####  Additionally, if you set tsbridge to 0, then portbindopt needs to be set to 1.  However, this will 
+#####  happen automatically with the logic below the tsbridge variable.
 tsbridge=1
+if [[ $tsbridge == 1 ]]; then
+  portbindopt=0
+  # set default bind ports based on service type
+  binddns=53
+  bindhttp=80
+  bindhttps=443
+else
+  portbindopt=1
+fi
 
 ##### ENVIRONMENT SPECIFIC VARIABLES ####
 intname="ens34"
@@ -160,6 +171,7 @@ ShowCurrentSettings()
   if [[ ! -z $RDsel ]]; then SettingFormat "Redirector to modify" "$RDsel"; fi
   if [[ ! -z $curredirip ]]; then SettingFormat "Current Dest IP" "$curredirip"; fi
   if [[ ! -z $newrediripsel ]]; then SettingFormat "New Dest IP" "$newrediripsel"; fi
+  if [[ ! -z $Tagin ]]; then SettingFormat "DNS Tag" "$Tagin"; fi
   echo -ne "$default"
 }
 
@@ -354,7 +366,7 @@ SelectRedirMenu()
     b|B) MainMenu;;
       *) if (( $RDin >= 1 && $RDin < $count )) 2>/dev/null; then
            RDsel=`grep -irl Redirected /root/services/*/ServiceInfo.txt | cut -d/ -f4 | sed -n ${RDin}p`
-           curredirip=`grep "Redirected to" /root/services/$RD/ServiceInfo.txt | cut -d" " -f4`
+           curredirip=`grep "Redirected to" /root/services/$RDsel/ServiceInfo.txt | cut -d" " -f4`
            SetNewRedirIPMenu
          else
            InputError
@@ -445,7 +457,7 @@ CityMenu()
 
 SetIPOption()
 {
-  TSIP=;
+  TSIP=; randomipon=;
   MenuBanner
   echo -e "\n\t$ltblue Do you want to get random IPs or set them manually?"
   Format2Options 1 "Set random IPs"
@@ -453,7 +465,8 @@ SetIPOption()
   echo -ne "\n\t$ltblue Enter a Selection: $default"
   read optin
   case $optin in
-    1) GenRanIPlist
+    1) randomipon=1
+       GenRanIPlist
        if (( $setnginx == 1 || $sethaproxy == 1 )); then  # All redirectors
          PortMenu
        elif (( $setcsts == 1 )); then  # Cobalt Strike Teamserver
@@ -659,7 +672,11 @@ PortMenu()
   if [[ $http == 1 ]]; then portsel="http "$portsel; fi
   if [[ $https == 1 ]]; then portsel="https "$portsel; fi
   echo "Ports Redirected: $portsel" >> $tmpsrvpath/ServiceInfo.txt
-  BindPortMenu
+  if [[ $portbindopt == 1 ]]; then
+    BindPortMenu
+  else
+    RedirDestMenu
+  fi
 }
 
 BindPortMenu()
@@ -714,7 +731,11 @@ RedirDestMenu()
   read redirip
   case $redirip in
     q|Q) UserQuit;;
-    b|B) BindPortMenu;;
+    b|B) if [[ $portbindopt == 1 ]]; then 
+           BindPortMenu
+         else
+           PortMenu
+         fi;;
     *) rediripsel=$redirip;;
   esac
   CheckIP $rediripsel
@@ -764,7 +785,7 @@ AddDNSMenu()
   read answer
   case $answer in
     1) randomdns=1; DNSTagMenu;;
-    2) ManualDNS;;
+    2) if [ ! -f $TempDNSconf ]; then rm -f $TempDNSconf; fi; ManualDNS;;
     3) ExecAndValidate;;
     b|B) if [[ $setpayload == 1 || $setphish == 1 ]]; then
            SetIPOption
@@ -781,6 +802,7 @@ AddDNSMenu()
 
 DNSTagMenu()
 {
+  Tagin=;
   MenuBanner
   echo -e "\n\t$ltblue Enter a tag to be able to identify your DNS records"
   echo -e "\t The tag will automatically be prepended with OPFOR-"
@@ -1012,7 +1034,7 @@ SelectServicesMenu()
     read srvnum 
     case $srvnum in
       q|Q) UserQuit;;
-      b|B) MainMenu;;
+      b|B) ContainerMenu;;
         *) if (( $srvnum >= 1 && $srvnum < $count )) 2>/dev/null; then
              srvsel=`ls $basesrvpath | sed -n ${srvnum}p`
              case $copt in
@@ -1034,10 +1056,14 @@ ServiceDetailsMenu()
   MenuBanner
   echo -e "\n\t$ltblue Here is the information on $srvsel $default"
   echo -e "\t$white SERVICE INFO $default"
-  cat $basesrvpath/$srvsel/ServiceInfo.txt
+  while read p; do
+    echo -e "\t$p"
+  done<$basesrvpath/$srvsel/ServiceInfo.txt
   if [[ -f $basesrvpath/$srvsel/$DNSlist ]]; then 
     echo -e "\n\t$white DNS Info $default"
-    cat $basesrvpath/$srvsel/$DNSlist 
+    while read p; do
+      echo -e "\t$p"
+    done<$basesrvpath/$srvsel/$DNSlist 
   else
     echo -e "\n\t$white No DNS registered for this containers services"
   fi
