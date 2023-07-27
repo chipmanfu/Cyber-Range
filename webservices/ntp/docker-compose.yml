@@ -8,5 +8,5 @@ services:
     ports:
       - 180.1.1.140:123:123/udp
     environment:
-      - NTP_SERVERS=127.0.0.1
+      - NTP_SERVERS=172.30.0.2
       - NOCLIENTLOG=true
