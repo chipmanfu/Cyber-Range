@@ -1,9 +1,14 @@
 #!/bin/bash
+dtime=60
+djitter=50
+dmaxto=4
+dmaxattach=2
 composefile="docker-compose.yml"
 emaillistpath="/root/TG/SendTo/"
 emailerfile="/root/emailerlist.txt"
 iface="ens35"           ##  Make sure this matches.
 ltblue="\e[1;36m"
+ltgray="\e[0;37m"
 white="\e[1;37m"
 yellow="\e[1;33m"
 green="\e[1;32m"
@@ -51,6 +56,20 @@ fi
 echo -e "$green All Checks are good!  Starting build compose file menu. $default"
 sleep 3
 
+ShowCurrentSettings()
+{
+   if [[ ! -z $emaillist ]]; then SettingFormat "Send to Target Domain" "$emaillist"; fi
+   if [[ ! -z $timesel ]]; then SettingFormat "Time Interval" "$timesel"; fi
+   if [[ ! -z $jittersel ]]; then SettingFormat "Percent Jitter" "$jittersel"; fi
+   if [[ ! -z $maxtosel ]]; then SettingFormat "Max To" "$maxtosel"; fi
+   if [[ ! -z $maxattachsel ]]; then SettingFormat "Max Attachments" "$maxattachsel"; fi
+}
+SettingFormat()
+{
+  local title="$1"
+  local value="$2"
+  printf "$ltgray%25s: $green%-20b\n" "$title" "$value"
+}
 FormatOption()
 {
   local count="$1"
@@ -58,13 +77,29 @@ FormatOption()
   printf "\t$ltblue%3d )$white %-23b\n" "$count" "$title"
 }
 
+MenuBanner()
+{
+  clear
+  echo -e "\n\t$ltblue Email Traffic Gen Configuration Script"
+  ShowCurrentSettings
+}
+
 InputError()
 {
-  echo -e "\n\t\t$red Invalid Selection, Please try again"; sleep 2
+  echo -e "\n\t\t$red Invalid Selection, Please try again $default"; sleep 2
+}
+IsNumber()
+{
+  local x=$1
+  if [[ "$x" =~ ^[0-9]+$ ]]; then
+    return 1 
+  else 
+    return 0
+  fi
 }
 MainMenu()
 {
-  clear
+  MenuBanner
   echo -e "\n$ltblue    This will build a new docker-compose.yml file.  It will start up the following domains$white"
   cat $emailerfile | grep -v "^#" | grep -v "^$" | cut -d, -f1 | sed 's/^/\t/g'
   echo -e "$ltblue     Select the target domains to send emails to below"
@@ -79,13 +114,111 @@ MainMenu()
     q|Q) echo -e "$default"; exit 0;;
       *)  if (( $optin >= 1 && $optin < $count )) 2>/dev/null; then
             emaillist=`ls $emaillistpath | sed -n ${optin}p`
-            BuildYML
+            TimeintMenu
           else
             InputError
             MainMenu
           fi;;
    esac
 }
+TimeintMenu()
+{
+  MenuBanner
+  echo -e "\n$ltblue How frequently would you like to the traffic-emailgen to send emails from each traffic gen domain?"
+  echo -ne "\n\t$ltblue Enter a time interval in seconds Here (default is $dtime): $default"
+  read timeint
+  case $timeint in
+    q|Q) echo -e "$default"; exit 0;;
+     "") timesel=$dtime; JitterMenu;;
+      *) if IsNumber $timeint; then
+           InputError
+           TimeintMenu
+         else 
+           timesel=$timeint
+           JitterMenu
+         fi
+  esac
+}
+
+JitterMenu()
+{
+  MenuBanner
+  echo -e "\n$ltblue How much Jitter do you want to use, enter a value between 0 and 100.  Ex, 50 = 50%"
+  echo -en "\n\t$ltblue Enter a Jitter Value here (default is $djitter): $default"
+  read jitter
+  case $jitter in 
+    q|Q) echo -e "$default"; exit 0;;
+     "") jittersel=$djitter; MaxToMenu;;
+      *) if IsNumber $jitter; then
+           InputError
+           JitterMenu
+         else
+           if (( $jitter < 0 || $jitter > 101 )); then
+             InputError
+             JitterMenu
+           else
+             jittersel=$jitter
+             MaxToMenu
+           fi
+         fi
+  esac
+}
+MaxToMenu()
+{
+  MenuBanner
+  echo -e "\n$ltblue What is the max number of reciepts you want per email? Max is 10."
+  echo -en "\n\t$ltblue Enter Max to here (default $dmaxto): $default"
+  read maxto
+  case $maxto in
+    q|Q) echo -e "$default"; exit 0;;
+     "") maxtosel=$dmaxto; MaxAttachMenu;;
+      *) if IsNumber $maxto; then
+           InputError
+           MaxToMenu
+         else
+           if (( $Maxto < 0 || $Maxto > 11 )); then
+             InputError
+             MaxToMenu
+           else
+             maxtosel=$maxto
+             MaxAttachMenu
+           fi
+         fi
+  esac
+}
+MaxAttachMenu()
+{
+  MenuBanner
+  echo -e "\n$ltblue What is the max number of attachments you want per email? Max is 5."
+  echo -en "\n\t$ltblue Enter Max Attachments here (default $dmaxattach): $default"
+  read maxattach
+  case $maxattach in
+    q|Q) echo -e "$default"; exit 0;;
+     "") maxattachsel=$dmaxattach; BuildConfirm;;
+      *) if IsNumber $maxattach; then
+           InputError
+           MaxAttachMenu
+         else
+           if (( $Maxattach < 0 || $Maxattach > 6 )); then
+             InputError
+             MaxAttachMenu
+           else
+             maxattachsel=$maxattach
+             BuildConfirm
+           fi
+         fi
+  esac
+}
+
+BuildConfirm()
+{
+  MenuBanner
+  echo -e "\n$ltblue This will configure the Email Traffic gen with the above settings"
+  echo -en "\n\t$ltblue Press <enter> to continue"
+  read nothing
+  BuildYML
+}
+
 BuildYML()
 {
   clear
@@ -110,7 +243,7 @@ BuildYML()
     echo "      - /root/TG:/content" >> $composefile
     echo "    ports:" >> $composefile
     echo "      - $IP:25:25" >> $composefile
-    echo "    entrypoint: /content/Script/StartEmailGen.sh -d $fqdn" >> $composefile
+    echo "    entrypoint: /content/Script/StartEmailGen.sh -d $fqdn -t $timesel -j $jittersel -m $maxtosel -a $maxattachsel" >> $composefile
   done < /root/emailerlist.txt
   echo -e "$green Complete! Run 'starttrafficgen.sh' to start sending emails $default"
   exit 0
