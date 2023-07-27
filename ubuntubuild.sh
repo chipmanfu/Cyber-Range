@@ -283,6 +283,7 @@ service networking start
 service ssh restart
 case $opt in 
   1) clear; echo -e "$green Installing $svr Specific Applications $default";
+     apt install -y ntp
      apt install -y squid
      mv /etc/squid/squid.conf /etc/squid/squidmanual.txt 
      grep -v "^#" /etc/squid/squidmanual.txt | grep -v "^$" > /etc/squid/squid.conf
