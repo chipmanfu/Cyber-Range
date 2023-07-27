@@ -429,13 +429,15 @@ case $opt in
      rm cronjbs
      clear
      echo -e "$green Setting up Bookstack and populating it with the Cyber Range documentation $default"
-     cd /root/redbook
-     docker exec -i bookstack_db mysql -uroot -pbookstack bookstackapp < CRDocumentation.sql
-     tar -xvzf files.tar.gz
-     tar -xvzf images.tar.gz
-     docker cp images bookstack:/app/www/public/uploads
-     docker cp files bookstack:/config/www
-     docker exec -i bookstack chown -R abc:users /config/www
+     mv /root/redbook/CRoriginal.tar.gz /root/backups/redbook
+     /root/scripts/redbook/restore_redbook.sh CRoriginal.tar.gz
+     
+     #docker exec -i bookstack_db mysql -uroot -pbookstack bookstackapp < CRDocumentation.sql
+     #tar -xvzf files.tar.gz
+     #tar -xvzf images.tar.gz
+     #docker cp images bookstack:/app/www/public/uploads
+     #docker cp files bookstack:/config/www
+     #docker exec -i bookstack chown -R abc:users /config/www
      clear
      echo -e "$green Installation Complete! $default";;
 

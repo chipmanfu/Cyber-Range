@@ -44,5 +44,22 @@ MainMenu()
          fi
   esac
 }
-MainMenu
-         
+RestoreRedBook()
+{
+  cd /tmp
+  mkdir trestore
+  cd trestore
+  cp $backuppath/$backupfile .
+  tar -xzvf $backupfile
+  docker cp uploads bookstack:/config/www/
+  docker cp files bookstack:/config/www/
+  docker exec -i bookstack chown -R abc:users /config/www
+  docker exec -i bookstack_db mysql -uroot -pbookstack bookstackapp < bookstack.sql 
+  rm -r /tmp/trestore
+}
+if [[ -z "$1" ]]; then
+  MainMenu
+else
+  backupfile=$1
+  RestoreRedBook
+fi
