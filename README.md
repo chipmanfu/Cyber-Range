@@ -19,7 +19,7 @@ This Github project provides the CyberRange systems shown above in the green box
 - External SMTP Traffic Generator - The Traffic-EmailGen can generate emails and send these to your target domain users.
 - Real World Internet Access - The CyberRange environment will build an internet access web proxy.  This allows enables access to the real internet for all of the CyberRange.
 
-.
+# Installation Instructions
 See the wiki for how to install.  
 Once it's installed, there is a bookstack instance within the environment at www.redbook.com that contains detailed overviews and how to guides for using the environment.
 
