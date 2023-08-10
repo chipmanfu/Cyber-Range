@@ -2,7 +2,7 @@
 The CyberRange is a project to create a simulated internet environment for Cyber training and exercises.  This environment has some built-in features to help automate things for cyber threat emulation by handling things like IP assignment, DNS registration, signed SSL cert generation for threat infrastructure systems like redirectors, Cobalt Strike teamservers, payload hosting and phishing attacks.  Additional consideration and features have been added to generate benign network traffic to improve realism.  
 
 # The CyberRange Network Diagram
-![CyberRange](https://github.com/chipmanfu/Cyber-Range/assets/50666533/c808bf4b-a025-42f0-af41-cf4eee4255b1)
+![CyberRange](https://github.com/chipmanfu/Cyber-Range/assets/50666533/4d71b340-ffaa-4745-b7a7-e9624449adca)
 
 This Github project provides the CyberRange systems shown above in the green box.  The blue box would be the target domains (aka blue space) environments that the end user would need to build and attach to the CyberRange envirnoment.  Once, you've installed the CyberRange, there will be a Bookstack website running on the Web-Services VM that contains all of the documentation regarding the CyberRange along with instructions on how to connect a target domain to this environment.
 
