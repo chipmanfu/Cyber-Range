@@ -5,3 +5,4 @@ The CyberRange is a project to create a simulated internet environment for Cyber
 
 See the wiki for how to install.  
 Once it's installed, there is a bookstack instance within the environment at www.redbook.com that contains detailed overviews and how to guides for using the environment.
+![CyberRange](https://github.com/chipmanfu/Cyber-Range/assets/50666533/c808bf4b-a025-42f0-af41-cf4eee4255b1)
