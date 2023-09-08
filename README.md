@@ -17,7 +17,7 @@ This Github project provides the CyberRange systems shown above in the green box
 - Real World NTP server emulation - The web-services VM hosts an NTP server that gets its time source from the IA-Proxy which in turn gets its time source from the real internet.  The RootDNS server will resolve real world NTP server domains such as time.windows.com, *.ntp.org, *.nist.gov, to this server to ensure your target domain systems are synced to real world time.
 - 175 Hosted websites - The Traffic-WebHost VM runs an apache webserver that hosts 175 scrapped websites that can be used for traffic generation.  These sites are be build with SSL Certs that have been signed by the CA-Server to enable trusted SSL Certs for all of these sites.
 - External SMTP Traffic Generator - The Traffic-EmailGen can generate emails and send these to your target domain users.
-- Real World Internet Access - The CyberRange environment will build an internet access web proxy.  This allows access to the real internet for all of the CyberRange.
+- Real World Internet Access - The CyberRange environment has a internet access web proxy.  This allows access to the real internet for all of the systems in the CyberRange.
 
 # Installation Instructions
 See the wiki for how to install.  
