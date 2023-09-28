@@ -24,14 +24,13 @@ controls {
 //};
 options {
 	directory "/etc/bind";
-//	notify no;
 	dump-file "/var/log/named/data/cache_dump.db";
 	statistics-file "/var/log/named/data/named_stats.txt";
 	recursion yes;
 	allow-recursion { any; };
 	allow-query { any; };
 	dnssec-validation no;
-//	allow-query-cache { any; };
+        max-cache-size 0;
 	listen-on-v6 { none; };
 	listen-on { 	127.0.0.1;
 			8.8.8.8;
