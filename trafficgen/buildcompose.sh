@@ -14,7 +14,7 @@ yellow="\e[1;33m"
 green="\e[1;32m"
 red="\e[1;31m"
 default="\e[0m"
-
+clear
 echo -e "$ltblue\n Running a Traffic-Gen set up check"
 
 IPList=`ip a | grep $iface | grep inet | awk {'print$2'} | cut -d/ -f1`
@@ -53,12 +53,14 @@ if [ "$errorcount" -eq "1" ]; then
 fi
 
 # Script is still running then it passed the checks, lets move on.
+
 echo -e "$green All Checks are good!  Starting build compose file menu. $default"
-sleep 3
+sleep 5 
 
 ShowCurrentSettings()
 {
-   if [[ ! -z $emaillist ]]; then SettingFormat "Send to Target Domain" "$emaillist"; fi
+   if [[ ! -z $numsenders ]]; then SettingFormat "# of sending domains" "$numsenders"; fi
+   if [[ ! -z $emaillist ]]; then SettingFormat "Send to Target Domain" "$emaillist ($numaddrs email addresses)"; fi
    if [[ ! -z $timesel ]]; then SettingFormat "Time Interval" "$timesel"; fi
    if [[ ! -z $jittersel ]]; then SettingFormat "Percent Jitter" "$jittersel"; fi
    if [[ ! -z $maxtosel ]]; then SettingFormat "Max To" "$maxtosel"; fi
@@ -104,10 +106,11 @@ IsNumber()
 }
 MainMenu()
 {
-  MenuBanner
+  MenuBanner 
   echo -e "\n$ltblue This will build a new docker-compose.yml file."
   echo -e "\n$ltblue  It will start up the following domains$white"
   cat $emailerfile | grep -v "^#" | grep -v "^$" | cut -d, -f1 | sed 's/^/\t/g'
+  numsenders=`cat $emailerfile | grep -v '^#' | grep -v '^$' | wc -l`
   echo -e "$ltblue     Select the target domains to send emails to below"
   count=1
   for folder in `ls $emaillistpath`; do
@@ -120,6 +123,7 @@ MainMenu()
     q|Q) echo -e "$default"; exit 0;;
       *)  if (( $optin >= 1 && $optin < $count )) 2>/dev/null; then
             emaillist=`ls $emaillistpath | sed -n ${optin}p`
+            numaddrs=`cat $emaillistpath$emaillist/sendto.txt | wc -l`
             TimeintMenu
           else
             InputError
@@ -131,9 +135,8 @@ TimeintMenu()
 {
   timesel=
   MenuBanner
-  echo -e "\n$ltblue How frequently would you like to the traffic-emailgen"
-  echo -e "\n$ltblue to send emails from each traffic gen domain?"
-  echo -ne "\n\t$ltblue Enter a time interval in seconds Here (default is $dtime): $default"
+  echo -e "\n\t$ltblue Set email send frequency."
+  echo -ne "\t$ltblue Enter a time interval in seconds Here (default is $dtime): $default"
   read timeint
   case $timeint in
     q|Q) echo -e "$default"; exit 0;;
@@ -153,9 +156,8 @@ JitterMenu()
 {
   jittersel=
   MenuBanner
-  echo -e "\n$ltblue How much Jitter do you want to use, "
-  echo -e "\n$ltblue enter a value between 0 and 100.  Ex, 50 = 50%"
-  echo -en "\n\t$ltblue Enter a Jitter Value here (default is $djitter): $default"
+  echo -e "\n\t$ltblue Set a time jitter value between 0 and 100, ex, 50 = 50%"
+  echo -en "\t$ltblue Enter a Jitter Value here (default is $djitter): $default"
   read jitter
   case $jitter in 
     q|Q) echo -e "$default"; exit 0;;
@@ -179,8 +181,8 @@ MaxToMenu()
 {
   maxtosel=
   MenuBanner
-  echo -e "\n$ltblue What is the max number of reciepts you want per email? Max is 10."
-  echo -en "\n\t$ltblue Enter Max to here (default $dmaxto): $default"
+  echo -e "\n\t$ltblue Set the max. number of recipients per email."
+  echo -en "\t$ltblue Enter Max to here (default $dmaxto): $default"
   read maxto
   case $maxto in
     q|Q) echo -e "$default"; exit 0;;
@@ -204,8 +206,8 @@ MaxAttachMenu()
 {
   maxattachsel=
   MenuBanner
-  echo -e "\n$ltblue What is the max number of attachments you want per email? Max is 5."
-  echo -en "\n\t$ltblue Enter Max Attachments here (default $dmaxattach): $default"
+  echo -e "\n\t$ltblue Set the max number of attachments you want per email? Max is 5."
+  echo -en "\t$ltblue Enter Max Attachments here (default $dmaxattach): $default"
   read maxattach
   case $maxattach in
     q|Q) echo -e "$default"; exit 0;;
@@ -229,7 +231,11 @@ MaxAttachMenu()
 BuildConfirm()
 {
   MenuBanner
+  emailspermin=`awk -v s=$numsenders -v m=$maxtosel -v t=$timesel -v j=$jittersel 'BEGIN { print (s*((1+m)/2)*((t*j/100+t)/2))/60 }'`
+  userpermin=`awk -v n=$numaddrs -v r=$emailspermin 'BEGIN { print (r/n)*60 }'`
   echo -e "\n$ltblue This will configure the Email Traffic gen with the above settings"
+  echo -e "\n\t$white  Estimated rate of emails sent per minute: $green $emailspermin"
+  echo -e "\t$white  Estimated # of emails per user per hour: $green $userpermin" 
   echo -en "\n\t$ltblue Press <enter> to continue $default"
   read confirmbuild
   case $confirmbuild in
