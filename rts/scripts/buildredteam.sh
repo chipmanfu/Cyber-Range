@@ -19,7 +19,7 @@ else
 fi
 
 ##### ENVIRONMENT SPECIFIC VARIABLES ####
-intname="ens34"
+intname="ens35"
 CAserver="180.1.1.50"
 capass="toor"
 CAcrtpath="/root/ca/intermediate/certs"  # Needed to get CA cert for Apache SSL server
@@ -1025,7 +1025,7 @@ SelectServicesMenu()
         if [[ ! -z $runcheck ]]; then
           Format3Options "$count" "$srv" "(running)"
         else
-          Format3Options "$count" "$srv" "(${red}Stopped)"
+          Format3Options "$count" "$srv" "${red}(Stopped)"
         fi
       fi
       let "count++";
@@ -1080,7 +1080,9 @@ DeleteServicesMenu()
   case $answer in
     y|Y) MenuBanner
          echo -e "\n\t$ltblue Deleting Container $default"
-         docker kill $srvsel
+         if docker ps | grep -q $srvsel; then
+           docker kill $srvsel
+         fi
          docker rm $srvsel
          docker network prune --force
          echo -e "\n\t$ltblue Removing IPs $default"
@@ -1568,12 +1570,15 @@ BuildApacheConfig()
   echo "LoadModule ssl_module modules/mod_ssl.so" >> $apacheconf
   echo "LoadModule unixd_module modules/mod_unixd.so" >> $apacheconf
   echo "LoadModule dir_module modules/mod_dir.so" >> $apacheconf
+  echo "LoadModule log_config_module modules/mod_log_config.so" >> $apacheconf
   echo "DocumentRoot "/usr/local/apache2/htdocs"" >> $apacheconf
   echo "<Directory "/usr/local/apache2/htdocs">" >> $apacheconf
   echo "   Options Indexes FollowSymLinks" >> $apacheconf
   echo "   AllowOverride None" >> $apacheconf
   echo "    Require all granted" >> $apacheconf
   echo "</Directory>" >> $apacheconf
+  echo 'LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined' >> $apacheconf
+  echo "CustomLog /dev/stdout combined" >> $apacheconf
   echo "Include conf/extra/httpd-ssl.conf" >> $apacheconf
   apachesslconf="$srvpath/config/httpd-ssl.conf"
   # build initial file
