@@ -231,11 +231,16 @@ MaxAttachMenu()
 BuildConfirm()
 {
   MenuBanner
-  emailspermin=`awk -v s=$numsenders -v m=$maxtosel -v t=$timesel -v j=$jittersel 'BEGIN { print s*((1+m)/2)/((t*j/100+t)/2)*60*60 }'`
-  userpermin=`awk -v n=$numaddrs -v r=$emailspermin 'BEGIN { print (r/n)*60 }'`
+  # Math for estimating # emails per hour explained.
+  #  Number of Senders times the mean average of recipients (1 + max number of recipients)/2 this is divided by the mean average emai interval in seconds (time interval * jitter/100)/2
+  #  Then this results on the emails per second.  To convert this to emails per hour I multiple it by 60 sec/m then multiple it by 60 m/hr.
+  emailsperhr=`awk -v s=$numsenders -v m=$maxtosel -v t=$timesel -v j=$jittersel 'BEGIN { print s*((1+m)/2)/((t*j/100+t)/2)*60*60 }'`
+  # Math for estimate # of emails per user per hour explained.
+  # I take the estimated # of emails per hour from the above calculation, then divide that by the number of email address that the script is sending to.
+  userperhr=`awk -v n=$numaddrs -v r=$emailsperhr 'BEGIN { print (r/n) }'`
   echo -e "\n$ltblue This will configure the Email Traffic gen with the above settings"
-  echo -e "\n\t$white  Estimated rate of emails sent per minute: $green $emailspermin"
-  echo -e "\t$white  Estimated # of emails per user per hour: $green $userpermin" 
+  echo -e "\n\t$white  Estimated rate of emails sent per hour: $green $emailsperhr"
+  echo -e "\t$white  Estimated # of emails per user per hour: $green $userperhr" 
   echo -en "\n\t$ltblue Press <enter> to continue $default"
   read confirmbuild
   case $confirmbuild in
