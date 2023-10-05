@@ -24,7 +24,6 @@ See the wiki for how to install.
 Once it's installed, there is a bookstack instance within the environment at www.redbook.com that contains detailed overviews and how to guides for using the environment.
 
 ## TO DO List
-update the Cyber-Range installer script to validate packages install.
 
 Update NRTS docker services to add logging and log management
 
