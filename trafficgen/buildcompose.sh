@@ -231,7 +231,7 @@ MaxAttachMenu()
 BuildConfirm()
 {
   MenuBanner
-  emailspermin=`awk -v s=$numsenders -v m=$maxtosel -v t=$timesel -v j=$jittersel 'BEGIN { print (s*((1+m)/2)*((t*j/100+t)/2))/60 }'`
+  emailspermin=`awk -v s=$numsenders -v m=$maxtosel -v t=$timesel -v j=$jittersel 'BEGIN { print s*((1+m)/2)/((t*j/100+t)/2)*60*60 }'`
   userpermin=`awk -v n=$numaddrs -v r=$emailspermin 'BEGIN { print (r/n)*60 }'`
   echo -e "\n$ltblue This will configure the Email Traffic gen with the above settings"
   echo -e "\n\t$white  Estimated rate of emails sent per minute: $green $emailspermin"
