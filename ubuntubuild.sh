@@ -169,8 +169,8 @@ if [[ $opt != 1 ]]; then
 fi
 clear
 echo -e "$green Checking Internet connectivity $default"
-apt update
-if ! [ $? -eq 0 ]; then 
+apt update 2> /tmp/apt-result
+if grep -q "^W: Failed to fetch" /tmp/apt-result; then 
   clear
   echo -e "$red Internet Access Check Failed! Installation Aborted. $default"
   echo -e "\t Check the Following possible issues."
