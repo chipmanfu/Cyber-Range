@@ -167,6 +167,22 @@ if [[ $opt != 1 ]]; then
   export http_proxy=$Proxy
   export https_proxy=$Proxy
 fi
+clear
+echo -e "$green Checking Internet connectivity $default"
+apt update
+if ! [ $? -eq 0 ]; then 
+  clear
+  echo -e "$red Internet Access Check Failed! Installation Aborted. $default"
+  echo -e "\t Check the Following possible issues."
+  if [[ $opt != 1 ]]; then
+    echo -e "\t - Check your IA-Proxy, validate squid is running and it can reach the internet"
+    echo -e "\t - Check this systems IP to see if it got a DHCP lease in the 172.30.0.0/21 subnet on its first nic"
+    echo -e "\t\t  - Can this system ping the IA-Proxy at 172.30.0.2?"
+    echo -e "\t\t  - Is the AdminNet_DHCP server issuing out DHCP leases?"
+  fi
+  echo -e "\t - Check this system current date/time to make sure its not significantly off of real time\n"
+  exit 0
+fi
 echo -e "$green Changing some environment settings $default"
 sleep 2
 echo "colo industry" > /root/.vimrc
