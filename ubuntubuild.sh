@@ -220,7 +220,7 @@ sed -i 's/#SystemMaxUse=*/SystemMaxUse=100M/g' /etc/systemd/journald.conf
 clear
 echo -e "$green Installing needed applications $default"
 sleep 2
-apt install -y ifupdown net-tools curl make figlet ipcalc traceroute dos2unix sshpass
+apt install -y ifupdown net-tools curl make figlet ipcalc traceroute dos2unix sshpass ntpdate
 if [[ $needdocker == "y" ]]; then
   apt install -y ca-certificates gnupg
   mkdir -p /etc/apt/keyrings
@@ -338,6 +338,12 @@ case $opt in
      clear
      echo -e "$green Installation Complete! $default";;
   3) clear; echo -e "$green Installing $svr Specific Applications $default";
+     echo -e "$green Going to roll back CA-server time 4 years to simulate CA age $default";
+     curyr=$(date +%Y)
+     curmon=$(date +%m)
+     curday=$(date +%d)
+     cayr=$((curyr - 4))
+     date -s "$cayr-$curmon-$curday"
      cp -r ca /root
      cd /root/ca
      mv /root/ca/scripts /root/
@@ -362,6 +368,8 @@ case $opt in
      cat intermediate/certs/int.$CA.crt.pem certs/ca.$CA.crt.pem > intermediate/certs/chain.$CA.crt.pem
      mkdir -p /var/www
      mkdir -p /var/www/html
+     echo -e "$green CA and intermediate certs created, setting date time back $default"
+     ntpdate pool.ntp.org
      chmod 755 /root/scripts/*.sh
      sed -i "s/CAPASSWORD/$capempass/g" /root/scripts/*.sh
      sed -i "s/CADOMAINNAME/$CA/g" /root/scripts/*.sh
