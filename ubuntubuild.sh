@@ -341,6 +341,7 @@ case $opt in
      echo -e "$green Going to roll back CA-server time 4 years to simulate CA age $default";
      curyr=$(date +%Y)
      curmon=$(date +%m)
+     curday=$(date +%d)
      randomday=$(shuf -i 1-28 -n 1)
      cayr=$((curyr - 4))
      date -s "$cayr-$curmon-$randomday"
@@ -369,7 +370,7 @@ case $opt in
      mkdir -p /var/www
      mkdir -p /var/www/html
      echo -e "$green CA and intermediate certs created, setting date time back $default"
-     ntpdate pool.ntp.org
+     date -s "$curyr-$curmon-$curday"
      chmod 755 /root/scripts/*.sh
      sed -i "s/CAPASSWORD/$capempass/g" /root/scripts/*.sh
      sed -i "s/CADOMAINNAME/$CA/g" /root/scripts/*.sh
