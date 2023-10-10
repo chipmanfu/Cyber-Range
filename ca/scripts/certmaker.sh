@@ -120,15 +120,16 @@ else
   fi
 fi
 months_ago=$(shuf -i 6-18 -n 1)
+randomday=$(shuf -i 1-28 -n 1)
 curyr=$(date +%Y)
 curmon=$(date +%m)
-curday=$(date +%d)
 tmpyr=$(date -d "$curyr-$curmon-01 $months_ago months ago" +%Y)
 tmpmon=$(date -d "$curyr-$curmon-01 $months_ago months ago" +%m)
+sdate=$tmpyr$tmpmon$randomday"000000Z"
 if [[ $quiet == "" ]]; then
   clear
   echo -e "$green Certificate will be created with the following settings:"
-  echo -e "$ltblue modified creation date: $tmpyr-$tmpmon-$curday"
+  echo -e "$ltblue modified creation date: $tmpyr-$tmpmon-$randomday"
   echo -e "$ltblue                 domain: $white $domain "
   echo -e "$ltblue              C(county): $white $C"
   echo -e "$ltblue              ST(State): $white $ST"
@@ -178,9 +179,8 @@ if [[ $DNS1 != "" ]]; then
     echo "DNS.4 = $DNS4" >> /tmp/san.cnf
   fi
 fi
-date -s "$tmpyr-$tmpmon-$curday"
 openssl req -out /root/ca/intermediate/csr/$domain.csr -newkey rsa:2048 -nodes -keyout /root/ca/intermediate/private/$domain.key -config /tmp/san.cnf
-openssl ca -config /root/ca/intermediate/openssl_intermediate.cnf -extensions server_cert -days 825 -notext -md sha512 -in /root/ca/intermediate/csr/$domain.csr -out /root/ca/intermediate/certs/$domain.crt -passin pass:password -batch
+openssl ca -config /root/ca/intermediate/openssl_intermediate.cnf -extensions server_cert -startdate $sdate -days 825 -notext -md sha512 -in /root/ca/intermediate/csr/$domain.csr -out /root/ca/intermediate/certs/$domain.crt -passin pass:password -batch
 openssl pkcs12 -inkey /root/ca/intermediate/private/$domain.key -in /root/ca/intermediate/certs/$domain.crt -export -chain -CAfile /root/ca/intermediate/certs/chain.globalcert.com.crt.pem -out /root/ca/intermediate/certs/$domain.p12 -passout pass:password $addalias
 
 if [[ $codesign == "yes" ]]; then
@@ -207,9 +207,8 @@ extendedKeyUsage	= critical,codeSigning
 subjectKeyIdentifier	= hash
 EOM
   openssl req -out /root/ca/intermediate/csr/cs.$domain.csr -newkey rsa:2048 -nodes -keyout /root/ca/intermediate/private/cs.$domain.key -config /tmp/cs.cnf
-  openssl ca -config /root/ca/intermediate/openssl_intermediate.cnf -days 825 -notext -md sha512 -in /root/ca/intermediate/csr/cs.$domain.csr -out /root/ca/intermediate/certs/cs.$domain.crt -passin pass:password -batch
+  openssl ca -config /root/ca/intermediate/openssl_intermediate.cnf -startdate $sdate -days 825 -notext -md sha512 -in /root/ca/intermediate/csr/cs.$domain.csr -out /root/ca/intermediate/certs/cs.$domain.crt -passin pass:password -batch
   openssl pkcs12 -inkey /root/ca/intermediate/private/cs.$domain.key -in /root/ca/intermediate/certs/cs.$domain.crt -export -chain -CAfile /root/ca/intermediate/certs/chain.globalcert.com.crt.pem -out /root/ca/intermediate/certs/cs.$domain.p12 -passout pass:password $addalias
-ntpdate pool.ntp.org
 cp /root/ca/intermediate/certs/cs.$domain.p12 /var/www/html
 fi
 cp /root/ca/intermediate/private/$domain.key /var/www/html
