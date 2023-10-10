@@ -343,7 +343,7 @@ case $opt in
      curmon=$(date +%m)
      randomday=$(shuf -i 1-28 -n 1)
      cayr=$((curyr - 4))
-     sdate=$cayr$curmon$randomday"000000Z"
+     date -s "$cayr-$curmon-$randomday"
      cp -r ca /root
      cd /root/ca
      mv /root/ca/scripts /root/
@@ -353,7 +353,7 @@ case $opt in
      echo '1000' > serial
      sed -i "s/DOMAINNAME/$CA/g" openssl_root.cnf
      openssl genrsa -aes256 -out private/ca.$CA.key.pem -passout pass:$capempass 4096
-     openssl req -config openssl_root.cnf -new -x509 -sha512 -extensions v3_ca -key /root/ca/private/ca.$CA.key.pem -out /root/ca/certs/ca.$CA.crt.pem -startdate $sdate -days 3650 -set_serial 0 -passin pass:$capempass -subj "/C=$cac/ST=$cast/L=$cal/O=$cao/OU=$caou/CN=ca.$CA"
+     openssl req -config openssl_root.cnf -new -x509 -sha512 -extensions v3_ca -key /root/ca/private/ca.$CA.key.pem -out /root/ca/certs/ca.$CA.crt.pem -days 3650 -set_serial 0 -passin pass:$capempass -subj "/C=$cac/ST=$cast/L=$cal/O=$cao/OU=$caou/CN=ca.$CA"
      mkdir -p /root/ca/intermediate
      cd /root/ca/intermediate
      mkdir certs newcerts crl csr private
@@ -364,11 +364,12 @@ case $opt in
      sed -i "s/DOMAINNAME/$CA/g" openssl_intermediate.cnf
      cd /root/ca
      openssl req -config /root/ca/intermediate/openssl_intermediate.cnf -new -newkey rsa:4096 -keyout /root/ca/intermediate/private/int.$CA.key.pem -out /root/ca/intermediate/csr/int.$CA.csr -passout pass:$capempass -subj "/C=$cac/ST=$cast/L=$cal/O=$cao/OU=$caou/CN=int.$CA"
-     openssl ca -batch -config /root/ca/openssl_root.cnf -extensions v3_intermediate_ca -startdate $sdate -days 3650 -notext -md sha512 -in /root/ca/intermediate/csr/int.$CA.csr -out /root/ca/intermediate/certs/int.$CA.crt.pem -passin pass:$capempass
+     openssl ca -batch -config /root/ca/openssl_root.cnf -extensions v3_intermediate_ca -days 3650 -notext -md sha512 -in /root/ca/intermediate/csr/int.$CA.csr -out /root/ca/intermediate/certs/int.$CA.crt.pem -passin pass:$capempass
      cat intermediate/certs/int.$CA.crt.pem certs/ca.$CA.crt.pem > intermediate/certs/chain.$CA.crt.pem
      mkdir -p /var/www
      mkdir -p /var/www/html
      echo -e "$green CA and intermediate certs created, setting date time back $default"
+     ntpdate pool.ntp.org
      chmod 755 /root/scripts/*.sh
      sed -i "s/CAPASSWORD/$capempass/g" /root/scripts/*.sh
      sed -i "s/CADOMAINNAME/$CA/g" /root/scripts/*.sh
