@@ -120,7 +120,7 @@ else
   fi
 fi
 months_ago=$(shuf -i 6-18 -n 1)
-randomday=$(shuf -i 1-28 -n 1)
+randomday=$(shuf -i 10-28 -n 1)
 curyr=$(date +%Y)
 curmon=$(date +%m)
 tmpyr=$(date -d "$curyr-$curmon-01 $months_ago months ago" +%Y)
