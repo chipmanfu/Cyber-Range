@@ -15,7 +15,15 @@ case $answer in
        fi
        docker network prune --force
        cp /etc/iproute2/rt_tables.org /etc/iproute2/rt_tables
-       cp /etc/network/interfaces.org /etc/network/interfaces
+       oct3=`shuf -i 0-15 -n 1`
+       oct4=`shuf -i 2-254 -n 1 `
+       newip="5.29.$oct3.$oct4/20"
+       anic=`ip link show | grep ^2: | awk {'print$2'} | cut -d: -f1`
+       bnic=`ip link show | grep ^3: | awk {'print$2'} | cut -d: -f1`
+       echo -e "auto lo\niface lo inet loopback" > /etc/network/interfaces
+       echo -e "\nauto $anic\niface $anic inet dhcp" >> /etc/network/interfaces
+       echo -e "\nauto $bnic\niface $bnic inet static\n\taddress $newip" >> /etc/network/interfaces
+       echo -e "\tgateway 5.29.0.1" >> /etc/network/interfaces
        ip addr flush $nic
        sed -i '/^inet_interfaces/d' /etc/postfix/main.cf
        echo "inet_interfaces = 127.0.0.1" >> /etc/postfix/main.cf
