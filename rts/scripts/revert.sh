@@ -28,6 +28,6 @@ case $answer in
        sed -i '/^inet_interfaces/d' /etc/postfix/main.cf
        echo "inet_interfaces = 127.0.0.1" >> /etc/postfix/main.cf
        service networking restart
-       rm -r /root/services/*;;
+       [ "$(ls -A /root/services)" ] && rm -r /root/services/* || echo "";;
   *) exit 0;;
 esac
