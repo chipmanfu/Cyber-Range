@@ -11,9 +11,7 @@ tsbridge=1
 if [[ $tsbridge == 1 ]]; then
   portbindopt=0
   # set default bind ports based on service type
-  binddns=53
-  bindhttp=80
-  bindhttps=443
+  binddns=53; bindhttp=80; bindhttps=443
 else
   portbindopt=1
 fi
@@ -30,23 +28,35 @@ recursDNS="8.8.8.8"                      # This is the IP for the Recursive DNS 
 defaultdecoysite="redbook.com"
 
 #set initial variables for paths, files, and/or values
+## filenames
 IPlist="IPList.txt"
 DNSlist="OPFOR-DNS.txt"
+CDNmap="CDN-HostMap.txt"
+## static files/path references
 basesrvpath="/root/services"
-manIPlist="/tmp/IPlist.txt"
-tempintfile="/tmp/interface.txt"
-TempDNSconf="/tmp/tmpDNS.txt"
 rtrpath="/root/backbonerouters"
 cspath="/root/cobaltstrike"
 csc2path="/root/Profiles"
-cp /dev/null $manIPlist
 rtrtable="/etc/iproute2/rt_tables"
-CurDNSInfo="/tmp/CurDNSinfo.txt"
 intfile="/etc/network/interfaces"
 postfixconf="/etc/postfix/main.cf"
+## temporary storage
+manIPlist="/tmp/brts/IPlist.txt"
+manhostlist="/tmp/brts/hostlist.txt"
+tempintfile="/tmp/brts/interface.txt"
+TempDNSconf="/tmp/brts/tmpDNS.txt"
+CurDNSInfo="/tmp/brts/CurDNSinfo.txt"
 disablepayload=0
 gotdnsinfo=0
 
+## clear out temp storage from previous script runs
+if [ -d /tmp/brts ]; then
+  rm -r /tmp/brts/* 2>/dev/null
+else
+  mkdir /tmp/brts
+fi
+## remove any CND maps from temp.
+rm /tmp/$CDNmap 2>/dev/null 
 # Set variable names to add color codes to menu displays.
 white="\e[1;37m"
 ltblue="\e[1;36m"
@@ -136,11 +146,13 @@ MenuBanner()
   case $opt in
     1) bannertitle="Build a NGINX redirector Container";;
     2) bannertitle="Build a HAProxy Redirector Container";;
-    3) bannertitle="Set up a Cobalt Strike Container";;
-    4) bannertitle="Set up a payload host Container";;
-    5) bannertitle="Set up a phishing attack";;
-    6) bannertitle="Container Management";;
-    7) bannertitle="Modify Redirector Destination IP";;
+    3) bannertitle="Build a Domain Fronting (CDN) redirector container";;
+    4) bannertitle="Set up a Cobalt Strike Container";;
+    5) bannertitle="Set up a payload host Container";;
+    6) bannertitle="Set up a phishing attack";;
+    7) bannertitle="Container Management";;
+    8) bannertitle="Modify Redirector Destination IP";;
+    9) bannertitle="Modify CDN mappings";;
     *) bannertitle="Not Red Team Server Docker Build Script";;
   esac
   printf "\n\t$ltblue %-60s %8s\n"  "$bannertitle" "<b>-Back"
@@ -169,6 +181,24 @@ ShowCurrentSettings()
   if [[ ! -z $decoysite ]]; then SettingFormat "HA Proxy Decoy site" "$decoysite"; fi
   if [[ ! -z $passwordsel ]]; then SettingFormat "Password" "$passwordsel"; fi
   if [[ ! -z $RDsel ]]; then SettingFormat "Redirector to modify" "$RDsel"; fi
+  if [[ ! -z $cdndomain ]]; then SettingFormat "CDN domain" "$cdndomain"; fi
+  if [[ -s $manhostlist ]]; then
+    for x in `cat $manhostlist`; do
+      mapnum=`echo $x | cut -d, -f1`
+      hostnm=`echo $x | cut -d, -f2`
+      htip=`echo $x | cut -d, -f3`
+      SettingFormat "Hostname Map $mapnum" "$hostnm -> $htip"
+    done
+  fi
+  if [[ ! -z $CDNsel ]]; then SettingFormat "CDN Selected" "$CDNsel ($curCDNDomain)"; fi
+  if [[ -s /tmp/$CDNmap ]]; then
+    for x in `cat /tmp/$CDNmap`; do
+	  mapnum=`echo $x | cut -d, -f1`
+	  hostnm=`echo $x | cut -d, -f2`
+	  htip=`echo $x | cut -d, -f3`
+	  SettingFormat "Hostname Map $mapnum" "$hostnm -> $htip"
+	done
+  fi
   if [[ ! -z $curredirip ]]; then SettingFormat "Current Dest IP" "$curredirip"; fi
   if [[ ! -z $newrediripsel ]]; then SettingFormat "New Dest IP" "$newrediripsel"; fi
   if [[ ! -z $Tagin ]]; then SettingFormat "DNS Tag" "$Tagin"; fi
@@ -216,46 +246,58 @@ CheckIP()
 {
   local ip=$1        # Get passed IP address
   if `ipcalc -c $ip | grep -iq INVALID`; then
-    return 1
+    return 1 
   else
     return 0
   fi
 }
 
+CheckFQDN()
+{
+  local pattern="^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$"
+  if [[ $1 =~ $pattern ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
 #### MENU FUNCTIONS FOR GETTING USER INPUT
 MainMenu()
 {
   # Set initial variables, Resets values if user navigates back to the beginning
-  opt=0; setnginx=0; sethaproxy=0; setcsts=0; setpayload=0; setphish=0; totalipssel=;
-  tmpsrvpath=;changeredir=;
+  opt=0; setnginx=0; sethaproxy=0; setcdn=0; setcsts=0; setpayload=0; setphish=0; totalipssel=;
+  tmpsrvpath=;changeredir=;changeCDN=
   # Calls menu Banner
   MenuBanner
   # List options, get user input, process the input.
   Format2Options 1 "Set up a NGINX redirector (http,https,DNS)"
-  Format2Options 2 "Set up a HAProxy redirector (${yellow}http and/or https only)"
+  Format2Options 2 "Set up a HAProxy redirector (${yellow}Only works with cobalt strike)"
+  Format2Options 3 "Set up a Domain Fronting (CDN) redirector"
   if [ $CSinstalled = "y" ]; then
-    Format2Options 3 "Set up a Cobalt Strike teamserver"
+    Format2Options 4 "Set up a Cobalt Strike teamserver"
   else
-    Format2Grayout 3 "Set up a Cobalt Strike teamserver"
+    Format2Grayout 4 "Set up a Cobalt Strike teamserver"
   fi
-  Format2Options 4 "Set up a payload host server"
-  Format2Options 5 "Set up phishing attack"
-  Format2Options 6 "Container Management"
-  Format2Options 7 "Change existing redirectors destination IP"
+  Format2Options 5 "Set up a payload host server"
+  Format2Options 6 "Set up phishing attack"
+  Format2Options 7 "Container Management"
+  Format2Options 8 "Change existing redirectors destination IP"
+  Format2Options 9 "Add,edit,modify CDN Domain fronting mappings"
   echo -en "\n\t$ltblue Enter a Selection: $default"
   read optin
   case $optin in
     1) opt=1; service="Nginx Redirector"; setnginx=1; ServiceTagMenu;;
     2) opt=2; service="HAProxy Redirector"; sethaproxy=1; ServiceTagMenu;;
-    3) if [ $CSinstalled = "y" ]; then
-         opt=3; service="CS Teamserver"; setcsts=1; ServiceTagMenu
+    3) opt=3; service="CDN Domain Fronting redirector"; setcdn=1; ServiceTagMenu;;
+    4) if [ $CSinstalled = "y" ]; then
+         opt=4; service="CS Teamserver"; setcsts=1; ServiceTagMenu
        else
          echo -e "$red Cobalt Strike isn't installed!"
          sleep 2
 	 InputError
          MainMenu
        fi;;
-    4) opt=4
+    5) opt=5
        if [ $disablepayload == 1 ]; then
          echo -e "$red Option is disabled!"
          echo -e "$ltblue CA cert can't be reached"
@@ -264,13 +306,14 @@ MainMenu()
        else
          service="Payload Host"; setpayload=1; ServiceTagMenu
        fi;;
-    5) opt=5; setphish=1; srvtag="phish"; tmpsrvpath="/tmp/$srvtag"; totalipssel=1; service="Phishing prep" 
+    6) opt=6; setphish=1; srvtag="phish"; tmpsrvpath="/tmp/$srvtag"; totalipssel=1; service="Phishing prep" 
        if [ -d $tmpsrvpath ]; then rm -r $tmpsrvpath; fi
        mkdir -p $tmpsrvpath
        echo "$service" > $tmpsrvpath/ServiceInfo.txt
        CountryMenu;;
-    6) opt=6; ContainerMenu;;
-    7) opt=7; changeredir=1; SelectRedirMenu;;
+    7) opt=7; ContainerMenu;;
+    8) opt=8; changeredir=1; SelectRedirMenu;;
+    9) opt=9; changeCDN=1; SelectCDNMenu;;
     b|B) MainMenu;;
     q|Q) UserQuit;;
     *) InputError
@@ -285,8 +328,9 @@ ServiceTagMenu()
   # Create a service type tag based on option selected.
   case $opt in
     1|2)  typetag="RD";;
-    3)  typetag="TS";;
-    4)  typetag="P";;
+    3)  typetag="CDN";;
+    4)  typetag="TS";;
+    5)  typetag="P";;
   esac
   # Check if service tag exists, if it does increment and test again until you find a free tag.
   for x in {1..1000}; do
@@ -315,7 +359,7 @@ ServiceTagMenu()
     # make temp folder to hold data until service is commited by the user.
     mkdir -p $tmpsrvpath
     echo "$service" > $tmpsrvpath/ServiceInfo.txt
-    if (( $setcsts == 1 )); then      # Cobalt Strike Team Server.
+    if (( $setcsts == 1 )) || (( $setcdn == 1 )); then      # Cobalt Strike Team Server.
       totalipssel=1; CountryMenu
     else
       NumIPsMenu
@@ -354,8 +398,8 @@ SelectRedirMenu()
   MenuBanner
   echo -e "\n\t$ltblue Select the Redirector that you want to modify"
   echo -e "\t$ltblue the redirector destination IP on"
-  for RD in `grep -irl Redirected /root/services/*/ServiceInfo.txt | cut -d/ -f4`; do
-    curIP=`grep "Redirected to" /root/services/$RD/ServiceInfo.txt | cut -d" " -f4`
+  for RD in `grep -irl Redirected $basesrvpath/*/ServiceInfo.txt | cut -d/ -f4`; do
+    curIP=`grep "Redirected to" $basesrvpath/$RD/ServiceInfo.txt | cut -d" " -f4`
     Format2Options "$count" "$RD Currently set to ($curIP)"
     let "count++";
   done
@@ -365,8 +409,8 @@ SelectRedirMenu()
     q|Q) UserQuit;;
     b|B) MainMenu;;
       *) if (( $RDin >= 1 && $RDin < $count )) 2>/dev/null; then
-           RDsel=`grep -irl Redirected /root/services/*/ServiceInfo.txt | cut -d/ -f4 | sed -n ${RDin}p`
-           curredirip=`grep "Redirected to" /root/services/$RDsel/ServiceInfo.txt | cut -d" " -f4`
+           RDsel=`grep -irl Redirected $basesrvpath/*/ServiceInfo.txt | cut -d/ -f4 | sed -n ${RDin}p`
+           curredirip=`grep "Redirected to" $basesrvpath/$RDsel/ServiceInfo.txt | cut -d" " -f4`
            SetNewRedirIPMenu
          else
            InputError
@@ -386,21 +430,228 @@ SetNewRedirIPMenu()
     b|B) SelectRedirMenu;;
       *) newrediripsel=$newredirip;;
   esac
-  CheckIP $newredirip
-  if [[ $? -eq 0 ]]; then
+  if CheckIP "$newredirip"; then
     ExecAndValidate 
   else
     InputError
+    newrediripsel=
     SetNewRedirIPMenu
   fi
 }  
 
+SelectCDNMenu()
+{
+  count=1; CDNsel=; curCDNDomain=
+  rm /tmp/$CDNmap 2>/dev/null
+  MenuBanner
+  echo -e "\n\t$ltblue Select the CDN that you want to modify"
+  for CDN in `grep -irl ^CDN $basesrvpath/*/ServiceInfo.txt | cut -d/ -f4`; do
+    curDomain=`head -n1 $basesrvpath/$CDN/OPFOR-DNS.txt | cut -d, -f1`
+    Format2Options "$count" "$CDN ($curDomain)"
+    let "count++";
+  done
+  echo -ne "\n\t$ltblue Enter a Selection: $default"
+  read CDNin
+  case $CDNin in
+    q|Q) UserQuit;;
+    b|B) MainMenu;;
+      *) if (( $CDNin >= 1 && $CDNin < $count )) 2>/dev/null; then
+           CDNsel=`grep -irl ^CDN $basesrvpath/*/ServiceInfo.txt | cut -d/ -f4 | sed -n ${CDNin}p`
+           curCDNDomain=`head -n1 $basesrvpath/$CDNsel/OPFOR-DNS.txt | cut -d, -f1`
+		   cp $basesrvpath/$CDNsel/$CDNmap /tmp/$CDNmap 
+           EditCDNMapMenu
+         else
+           InputError
+           SelectCDNMenu
+         fi;;
+  esac
+}  
+
+EditCDNMapMenu()
+{
+  MenuBanner
+  mapID=()
+  echo -e "\n\t$ltblue Below is the current CDN redirection Mappings for$green $curCDNDomain"
+  for map in `cat /tmp/$CDNmap`; do
+    mapID=`echo $map | cut -d, -f1`
+    mapDNS=`echo $map | cut -d, -f2`
+    mapIP=`echo $map | cut -d, -f3`
+    mapIDs+=("$mapID")
+    Format3Options "$mapID" "$mapDNS" "$mapIP"
+  done
+  Format3Options "s" "Change destination IP for all"
+  Format3Options "a" "Add additional Mappings"
+  Format3Options "d" "Select Mappings to Delete"
+  Format3Options "c" "Commit Changes, restart CDN and exit"
+  echo -ne "\n\t$ltblue Enter Selection Here: $default"
+  read optin
+  case $optin in
+    b|B) SelectCDNMenu;;
+    q|Q) UserQuit;;
+    c|C) ExecAndValidate;;
+    a|A) AddCDNMappings;;
+    d|D) DeleteCDNMappings;;
+    s|S) ChangeCDNIPall;;
+      *) if echo ${mapIDs[@]} | grep -q $optin; then
+           EditMapItemMenu
+         else
+           InputError
+           EditCDNMapMenu
+         fi;;
+  esac
+}
+
+AddCDNMappings()
+{
+  MenuBanner
+  maptotal=`cat /tmp/$CDNmap | wc -l`
+  maxadd=`expr 20 - $maptotal`
+  echo -e "\n\t$ltblue Adding mappings for$green $curCDNDomain"
+  echo -ne "\t$ltblue How many would you like to add? (max allowed is $maxadd) $default"
+  read addmap
+  case $addmap in
+    b|B) EditCDNMapMenu;;
+    q|Q) UserQuit;;
+      *) if [[ $addmap -ge 1 ]] && [[ $addmap -le $maxadd ]]; then
+           topmapID=`cut -d, -f1 /tmp/$CDNmap | sort -n | tail -1`
+           startID=`expr $topmapID + 1`
+           endID=`expr $topmapID + $addmap`
+           for (( c=$startID; c<=$endID; c++)); do 
+             echo "$c,," >> /tmp/$CDNmap
+           done 
+           EditCDNMapMenu
+         else
+           InputError
+           AddCDNMappings
+         fi;;
+  esac
+}
+
+DeleteCDNMappings()
+{
+  MenuBanner
+  mapID=()
+  echo -e "\n\t$ltblue Select the Mapping from$green $curCDNDomain$ltblue that want to delete"
+  for map in `cat /tmp/$CDNmap`; do
+    mapID=`echo $map | cut -d, -f1`
+    mapDNS=`echo $map | cut -d, -f2`
+    mapIP=`echo $map | cut -d, -f3`
+    mapIDs+=("$mapID")
+    Format3Options "$mapID" "$mapDNS" "$mapIP"
+  done
+  echo -ne "\n\t$ltblue Enter Selection to$red Delete$ltblue Here: $default"
+  read delmap
+  case $delmap in
+    b|B) EditCDNMapMenu;;
+    q|Q) UserQuit;;
+      *) if echo ${mapIDs[@]} | grep -q $delmap; then
+           sed -i "/^$delmap/d" /tmp/$CDNmap
+           EditCDNMapMenu
+         else
+           InputError
+           DeleteCDNMappings
+         fi;;
+  esac
+}
+    
+EditMapItemMenu()
+{
+  MenuBanner
+  echo -e "\n\t$ltblue Would do you want to modify?"
+  Format2Options "1" "Host Name"
+  Format2Options "2" "Destination IP"
+  echo -ne "\t$ltblue Enter Selection Here: $default"
+  read itemopt
+  case $itemopt in
+    b|B) EditCDNMapMenu;;
+    q|Q) UserQuit;;
+      1) EditMapHostMenu;;
+      2) EditMapIPMenu;;
+      *) InputError
+         EditMapItemMenu;;
+  esac
+}
+
+EditMapHostMenu()
+{
+  MenuBanner
+  targethostname=`grep ^$optin /tmp/$CDNmap | cut -d, -f2`
+  targetip=`grep ^$optin /tmp/$CDNmap | cut -d, -f3`
+  echo -e "\n\t$ltblue You have selected to replace $targethostname"
+  echo -ne "\n\t$ltblue Enter a new hostname here: $default"
+  read newhostin
+  if [[ $newhostin == b ]] || [[ $newhostin == B ]]; then EditMapItemMenu; fi
+  if [[ $newhostin == q ]] || [[ $newhostin == Q ]]; then UserQuit; fi
+  if CheckFQDN "$newhostin"; then
+    if grep -q $newhostin /tmp/$CDNmap; then
+      echo -e "\t$yellow $newhostin $red is already mapped to this CDN"; sleep 1
+      InputError
+      EditMapHostMenu
+    else
+      sed -i "/^$optin/d" /tmp/$CDNmap
+      echo "$optin,$newhostin,$targetip" >> /tmp/$CDNmap
+      sort -o /tmp/$CDNmap{,}
+      EditCDNMapMenu
+    fi
+  else
+    InputError
+    EditMapHostMenu 
+  fi
+  read holdup
+}
+
+EditMapIPMenu()
+{
+  MenuBanner
+  targetIP=`grep ^$optin /tmp/$CDNmap | cut -d, -f3`
+  targethostname=`grep ^$optin /tmp/$CDNmap | cut -d, -f2`
+  echo -e "\n\t$ltblue YOu have selected to replace the destination IP of $yellow $targetIP"
+  echo -ne "\n\t$ltblue Enter a new destination IP Here: $default"
+  read newipin
+  if [[ $newipin == b ]] || [[ $newipin == B ]]; then EditMapItemMenu; fi
+  if [[ $newipin == q ]] || [[ $newipin == Q ]]; then UserQuit; fi
+  if CheckIP "$newipin"; then
+    sed -i "/^$optin/d" /tmp/$CDNmap
+    echo "$optin,$targethostname,$newipin" >> /tmp/$CDNmap
+    sort -o /tmp/$CDNmap{,}
+    EditCDNMapMenu
+  else
+    InputError
+    EditMapIPMenu
+  fi
+}
+ChangeCDNIPall()
+{
+  MenuBanner
+  echo -e "\n\t$ltblue This will set the destination IP for all hostnames for$green $curCDNDomain"
+  echo -ne "\n\t$ltblue  Enter new Destination IP Here: $default"
+  read IPforall
+  if [[ $IPforall == b ]] || [[ $IPforall == B ]]; then EditCDNMapMenu; fi
+  if [[ $IPforall == q ]] || [[ $IPforall == Q ]]; then UserQuit; fi
+  if CheckIP $IPforall; then 
+    echo -n "" > /tmp/hostmap.txt
+    for x in `cat /tmp/$CDNmap`; do
+      mapID=`echo $x | cut -d, -f1`
+      maphost=`echo $x | cut -d, -f2`
+      echo "$mapID,$maphost,$IPforall" >> /tmp/hostmap.txt
+    done
+    cp /tmp/hostmap.txt /tmp/$CDNmap
+    EditCDNMapMenu
+  else 
+    InputError
+    ChangeCDNIPall
+  fi
+}
+ 
 CountryMenu()
 {
   # Sets initial variables, resets values if user navigates back.
   count=1; countrysel=
   MenuBanner
   # List options, get user input, process the input
+  if (( $setcdn == 1 )); then 
+    echo -e "\n\t$green Setting up your CDN, start by picking an IP based on Geolocation"
+  fi 
   echo -e "\n\t$ltblue SETUP IPs - Start with Selecting a Geolocation"
   echo -e "\t$ltblue Select a Country of Origin$ltblue"
   for folder in `ls $rtrpath`; do
@@ -411,7 +662,7 @@ CountryMenu()
   read country
   case $country in
     q|Q) UserQuit;;
-    b|B)  if [[ $setcsts == 1 ]]; then 
+    b|B)  if [[ $setcsts == 1 ]] || [[ $setcdn == 1 ]]; then 
             ServiceTagMenu
           elif [[ $setphish == 1 ]]; then
             MainMenu
@@ -457,7 +708,7 @@ CityMenu()
 
 SetIPOption()
 {
-  TSIP=; randomipon=;
+  TSIP=; randomipon=; staticIPsel=;
   MenuBanner
   echo -e "\n\t$ltblue Do you want to get random IPs or set them manually?"
   Format2Options 1 "Set random IPs"
@@ -467,8 +718,12 @@ SetIPOption()
   case $optin in
     1) randomipon=1
        GenRanIPlist
-       if (( $setnginx == 1 || $sethaproxy == 1 )); then  # All redirectors
+       if (( $setnginx == 1 || $sethaproxy == 1 )); then  # nginx or haproxy redirectors
          PortMenu
+       elif (( $setcdn == 1 )); then # Domain Fronting redirector
+         CDNIP=`grep -v "^#" $tmpsrvpath/$IPlist | cut -d/ -f1`
+         echo "CDN IP: $CDNIP" >> $tmpsrvpath/ServiceInfo.txt
+         ManualDNS
        elif (( $setcsts == 1 )); then  # Cobalt Strike Teamserver
          sed -i "/^Teamserver/d'" $tmpsrvpath/ServiceInfo.txt
          # Get Teamserver IP
@@ -501,8 +756,7 @@ ManualIPMenu()
       q|Q) UserQuit;;
       b|B) SetIPOption;;
       s|S) showSubnets;;
-      *)  CheckIP $sIPin
-        if [[ $? -eq 0 ]]; then
+      *) if CheckIP "$sIPin"; then
           for x in `cat $rtrpath/$countrysel/$citysel.txt`; do
             if [[ $x == \#* ]]; then continue; fi
             gateway=`echo $x | cut -d/ -f1`
@@ -525,6 +779,8 @@ ManualIPMenu()
               csc2profileMenu
             elif (( $setpayload == 1 || $setphish == 1 )); then  # Payload Host.
               AddDNSMenu
+            elif (( $setcdn == 1 )); then # CDN Redirector
+              ManualDNS
             else
               echo "How did you get here??"; exit 0;
             fi
@@ -594,8 +850,7 @@ IPentry()
   read IPin
   if [[ $IPin == b ]] || [[ $IPin == B ]]; then ManualIPMenu; fi
   if [[ $IPin == q ]] || [[ $IPin == Q ]]; then UserQuit; fi
-  CheckIP $IPin
-  if [[ $? -eq 0 ]]; then
+  if CheckIP "$IPin"; then
     found="no"
     for y in `cat $rtrpath/$countrysel/$citysel.txt`; do
       if [[ $y == \#* ]]; then continue; fi
@@ -738,8 +993,7 @@ RedirDestMenu()
          fi;;
     *) rediripsel=$redirip;;
   esac
-  CheckIP $rediripsel
-  if [[ $? -eq 0 ]]; then
+  if CheckIP "$rediripsel"; then
     echo "Redirected to IP: $rediripsel" >> $tmpsrvpath/ServiceInfo.txt
     if [[ $sethaproxy == 1 ]]; then 
       csc2profileMenu
@@ -756,16 +1010,16 @@ GetDNSInfo()
 {
   if [[ $gotdnsinfo != 1 ]]; then
     # Get DNS information for the primary DNS server
-    ssh $rootDNS 'cd /etc/bind/OPFOR; grep -Eo "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" * | uniq | sed "s/db.//" | sed "s/\:/ /"' > /tmp/IPinfo
-    ssh $rootDNS 'cd /etc/bind/OPFOR; grep -Eo "OPFOR[-0-9A-Za-z]{0,40}" * | sed "s/db.//" | sed "s/\:/ /"' > /tmp/taginfo
-    awk 'FNR==NR{a[$1]=$2 FS $3;next} $1 in a {print $0, a[$1]}' /tmp/taginfo /tmp/IPinfo | sort -k 3 > $CurDNSInfo
-    usertags=`cat $CurDNSInfo | cut -d " " -f 3 | sort -u`
+    ssh $rootDNS 'grep zone /etc/bind/named.conf.*' | cut -d'"' -f2 | sed 's/.$//g' > $CurDNSInfo 
+#    ssh $rootDNS 'cd /etc/bind/OPFOR; grep -Eo "OPFOR[-0-9A-Za-z]{0,40}" * | sed "s/db.//" | sed "s/\:/ /"' > /tmp/taginfo
+#    awk 'FNR==NR{a[$1]=$2 FS $3;next} $1 in a {print $0, a[$1]}' /tmp/taginfo /tmp/IPinfo | sort -k 3 > $CurDNSInfo
+#    usertags=`cat $CurDNSInfo | cut -d " " -f 3 | sort -u`
+    gotdnsinfo=1
   fi
 }
 
 AddDNSMenu()
 {
-  GetDNSInfo
   gotdnsinfo=1  # Flip this to 1 so we don't pull DNS information repeatly if user navigates back.
   randomdns=
   MenuBanner
@@ -813,7 +1067,7 @@ DNSTagMenu()
   echo -ne "\n\t  Enter a Tag here: $default"
   read answer
   case $answer in
-    b|B) AddDNSMenu; return;;
+    b|B) if [[ $setcdn == 1 ]]; then CDNRedirMenu; else AddDNSMenu; fi; return;;
     q|Q) UserQuit;;
       *) Tagin=$answer; ExecAndValidate;;
   esac
@@ -821,36 +1075,48 @@ DNSTagMenu()
 
 ManualDNS()
 {
+  GetDNSInfo
+  cdndomain=;
   MenuBanner
   if [ ! -f $TempDNSconf ]; then touch $TempDNSconf; fi
   iplist=`grep -v "#" $tmpsrvpath/$IPlist | cut -d/ -f1`
   numip=`echo "$iplist" | wc -l`
   if [[ $numip == 1 ]]; then
     echo -e "\n\t$ltblue Your Current IP is $green $iplist"
-    echo -e "\n\t$ltblue Please set the Fully Qualified Domain Name you would like to use"
-    echo -ne "\n\t$ltblue Here: $default"
+    if [[ $setcdn == 1 ]]; then 
+      echo -e "\n\t$ltblue Create the Fully Qualified Domain Name for your CDN"
+      echo -ne "\t$ltblue Enter CDN FQDN Here: $default"
+    else
+      echo -e "\n\t$ltblue Enter the Fully Qualified Domain Name you would like to use"
+      echo -ne "\t$ltblue Enter FQDN Here: $default"
+    fi
     read DNSin
     if [[ $DNSin == "q" || $DNSin == "Q" ]]; then
       exit 0
     fi
     if [[ $DNSin == "b" || $DNSin == "B" ]]; then
-      AddDNSMenu
+      SetIPOption
       exit 1
     fi
-    regexfqn="(?=^.{5,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.?)+\.(?:[a-z]{2,})$)"
-    if [[ `echo $DNSin | grep -P $regexfqn` ]]; then
+    if CheckFQDN "$DNSin"; then
     ## Check if dns is already registered
-      if grep -q "$DNSin" $CurDNSInfo; then
-        echo "$DNSin is already registred, please try again."; sleep 2
+      if grep -iq "$DNSin" $CurDNSInfo; then
+        echo -e "\t$red $DNSin is already registred, please try again. $default"; sleep 4
         ManualDNS
       fi
       #Remove any previously set FQDN for the IP selected.
       sed -i "/$iplist/d" $TempDNSconf
       #Add new FQDN
       lowercaseDNS=`echo $DNSin | tr '[:upper:]' '[:lower:]'`
+      if (( $setcdn == 1 )); then cdndomain=$lowercaseDNS; fi
       echo "$lowercaseDNS,$iplist" >> $TempDNSconf
       cp $TempDNSconf $tmpsrvpath/$DNSlist
-      DNSTagMenu
+      if (( $setcdn == 1 )); then
+        cdndomain=$lowercaseDNS;
+        CDNHostMenu
+      else
+        DNSTagMenu
+      fi
     else
       echo "$DNSin is not a valid FQDN, please try again."; sleep 2
       ManualDNS
@@ -876,7 +1142,7 @@ ManualDNS()
     echo -ne "\n\t$ltblue Enter a Selection Here: $default"
     read answer
     case $answer in
-      b|B) AddDNSMenu;;
+      b|B) if (( $setcdn == 1 )); then SetIPOptions; else AddDNSMenu; fi;;
       q|Q) UserQuit;;
       c|C) cp /dev/null $TempDNSconf; ManualDNS;;
       d|D) cp $TempDNSconf $tmpsrvpath/$DNSlist; DNSTagMenu;;
@@ -888,6 +1154,197 @@ ManualDNS()
            ManualDNS
          fi;;
     esac
+  fi
+}
+
+CDNHostMenu()
+{
+  MenuBanner
+  echo -e "\n\t$ltblue Next we will set the server hostnames to use (Max: 20)"
+  echo -ne "\t$ltblue Enter the number of hostnames: $default"
+  read numhostnames
+  case $numhostnames in
+    q|Q) UserQuit;;
+    b|B) ManualDNS;;
+      *) if (( $numhostnames >= 1 && $numhostnames <= 20 )) 2>/dev/null; then
+           numhosts=$numhostnames
+           ManualHostMenu
+         else
+           InputError
+           CDNHostMenu
+         fi;;
+  esac
+}
+
+ManualHostMenu()
+{
+  MenuBanner
+  if (( $numhosts == 1)); then 
+    echo -e "\n\t$ltblue Add the Server Host name you want to use, this will be the hostname"
+    echo -e "\t$ltblue that the CDN will recognize and forward to your team server"
+    echo -ne "\t$ltblue Enter hostname here: $default"
+    read hostnamein
+    if [[ $hostnamein == b ]] || [[ $hostnamein == B ]]; then CDNHostMenu; fi
+    if [[ $hostnamein == q ]] || [[ $hostnamein == Q ]]; then UserQuit; fi
+    if CheckFQDN "$hostnamein"; then
+      lowercasehost=`echo $hostnamein | tr '[:upper:]' '[:lower:]'`
+      sed -i "/^1\,/d" $manhostlist
+      echo "1,$lowercasehost" >> $manhostlist
+      sort -o $manhostlist{,}
+      CDNRedirMenu 
+    else
+      echo "$hostin is not a valid FQDN, please try again."; sleep 2
+      ManualHostMenu
+    fi
+  else
+    echo -e "\n\t$ltblue Below are slots to add Server Host names, these will be the"
+    echo -e "\t$ltblue host names that the CDN will recognize and forward to your team server"
+    echo -e "\t$ltblue Pick a slot below and add the hostname you want to use"
+    count=1
+    for host in $(seq $numhosts)
+    do
+      hostadded=`grep ^$host, $manhostlist 2>/dev/null | cut -d, -f2`
+      if [[ ! -z $hostadded ]]; then
+        Format2Options "$host" "$hostadded"
+      else 
+        Format2Options "$host" ""
+      fi
+    done
+    Format2Options "c" "clear all"
+    Format2Options "d" "done"
+    echo -ne "\n\t$ltblue Enter a Selection Here: $default"
+    read slot
+    case $slot in
+      b|B) CDNHostMenu;;
+      q|Q) UserQuit;;
+      c|C) cp /dev/null $manhostlist; ManualHostMenu;;
+      d|D) CDNRedirMenu;;
+        *) if [[ $slot -ge 1 ]] && [[ $slot -le $numhosts ]]; then
+             slotnum=$slot
+             HostEntry
+           else 
+             InputError
+             ManualHostMenu
+           fi;;
+    esac
+  fi
+}
+
+CDNRedirMenu()
+{
+  sameIP=0
+  MenuBanner
+  if (( $numhosts == 1 )); then
+    echo -e "\n\t$ltblue Please enter the IP where CDN server hostname matches"
+    echo -ne "\t$ltblue should go.  Enter C2 IP here: $default"
+    read ipin
+    if [[ $ipin == b ]] || [[ $ipin == B ]]; then ManualHostMenu; fi
+    if [[ $ipin == q ]] || [[ $ipin == Q ]]; then UserQuit; fi
+    if CheckIP "$ipin"; then
+      shost=`cat $manhostlist | cut -d, -f2`
+      echo "1,$shost,$ipin" > $manhostlist
+    else
+      echo "$ipin is not a valid IP Address, please try again."; sleep 2
+      CDNRedirMenu
+    fi
+    cp $manhostlist $tmpsrvpath/$CDNmap
+    DNSTagMenu
+  else
+    echo -e "\n\t$ltblue Please add the IPs where CDN server Hostname matches should go."
+    echo -e "\t$ltblue Select a hostname and then enter the IP, press D when complete"
+    for x in `cat $manhostlist`; do
+      slotnum=`echo $x | cut -d, -f1`
+      hostmaphost=`echo $x | cut -d, -f2`
+      hostmapip=`echo $x | cut -d, -f3`
+      if [[ ! -z $hostmapip ]]; then
+        Format3Options "$slotnum" "$hostmaphost" "$hostmapip"
+      else
+        Format3Options "$slotnum" "$hostmaphost" ""
+      fi
+    done
+    lastslot=$slotnum
+    Format2Options "s" "set same IP for all"
+    Format2Options "c" "Clear IPs"
+    Format2Options "d" "Done"
+    echo -ne "\n\t$ltblue Enter a Selection Here: $default"
+    read slotnumsel
+    case $slotnumsel in
+      b|B) ManualHostMenu;;
+      q|Q) UserQuit;;
+      s|S) sameIP=1; HostIPEntry;;
+      c|C) AddCleanupHere;; 
+      d|D) cp $manhostlist $tmpsrvpath/$CDNmap; DNSTagMenu;;
+        *) if [[ $slotnumsel -ge 1 ]] && [[ $slotnumsel -le $lastslot ]]; then
+             HostIPEntry
+           else
+             InputError
+             CDNRedirMenu
+           fi;;
+    esac  
+  fi
+}
+
+HostIPEntry()
+{
+  MenuBanner
+  if (( $sameIP == 1 )); then
+    echo -e "\n\t$ltblue This will set the IP for all of the hostnames."
+    echo -ne "\t$ltblue Please enter the IP here: $default"
+  else  
+    hostipcheck=`grep ^$slotnumsel, $manhostlist 2>/dev/null | cut -d, -f3`
+    hostin=`grep ^$slotnumsel, $manhostlist 2>/dev/null | cut -d, -f2`
+    if [[ $hostipcheck != "" ]]; then
+      echo -e "\n\t$ltblue Host $hostin already set as $green $hostipcheck"
+      echo -e "\t$ltblue This will replace it, if this isn't what you want hit B to go back"
+    fi
+    echo -e "\n\t$ltblue Please set IP this server hostname ($green $hostin $ltblue) should redirect"
+    echo -ne "\t$ltblue Here: $default"
+  fi
+  read hostipin
+  if [[ $hostipin == b ]] || [[ $hostipin == B ]]; then CDNRedirMenu; fi
+  if [[ $hostipin == q ]] || [[ $hostipin == Q ]]; then UserQuit; fi
+  if CheckIP "$hostipin"; then
+    if (( $sameIP == 1 )); then
+      for x in `cat $manhostlist`; do
+        slin=`echo $x | cut -d, -f1`
+        hin=` echo $x | cut -d, -f2`
+        sed -i "/^$slin\,/d" $manhostlist
+        echo "$slin,$hin,$hostipin" >> $manhostlist
+      done
+      sort -o $manhostlist{,}
+    else 
+      sed -i "/^$slotnumsel\,/d" $manhostlist
+      echo "$slotnumsel,$hostin,$hostipin" >> $manhostlist
+      sort -o $manhostlist{,}
+    fi
+    CDNRedirMenu
+  else
+    echo "$hostipin is not a valid IP address, please try again."; sleep 2
+    HostIPEntry
+  fi
+}
+
+HostEntry()
+{
+  MenuBanner
+  hostcheck=`grep ^$slotnum, $manhostlist 2>/dev/null | cut -d, -f2`
+  if [[ $hostcheck != "" ]]; then
+    echo -e "\n\t$ltblue Host already set as $green $hostcheck"
+    echo -e "\t$ltblue THis will replace it, if this isn't what you want hit B to go back"
+  fi
+  echo -e "\n\t$ltblue Please set the Server hostname you want to use"
+  echo -ne "\t$ltblue Here: $default"
+  read hostin
+  if [[ $hostin == b ]] || [[ $hostin == B ]]; then ManualHostMenu; fi
+  if [[ $hostin == q ]] || [[ $hostin == Q ]]; then UserQuit; fi
+  if CheckFQDN "$hostin"; then
+    lowercasehost=`echo $hostin | tr '[:upper:]' '[:lower:]'`
+    sed -i "/^$slotnum\,/d" $manhostlist
+    echo "$slotnum,$lowercasehost" >> $manhostlist
+    ManualHostMenu
+  else
+    echo "$hostin is not a valid FQDN, please try again."; sleep 2
+    ManualHostMenu
   fi
 }
 
@@ -905,9 +1362,8 @@ DNSentry()
   read DNSin
   if [[ $DNSin == b ]] || [[ $DNSin == B ]]; then ManualDNS; fi
   if [[ $DNSin == q ]] || [[ $DNSin == Q ]]; then UserQuit; fi
-  regexfqn="(?=^.{4,253}$)(^(?:[a-zA-Z](?:(?:[a-zA-Z0-9\-]){0,61}[a-zA-Z])?\.)+[a-zA-Z]{2,}$)"
-  if [[ `echo $DNSin | grep -P $regexfqn` ]]; then
-    if grep -q -i "$DNSin" $CurDNSInfo; then
+  if CheckFQDN "$DNSin"; then
+    if grep -iq "$DNSin" $CurDNSInfo; then
       echo "$DNSin is already registered, please try again."; sleep 2
       ManualDNS
     else
@@ -1119,7 +1575,7 @@ StopServiceMenu()
    
 BuildDockerContainer()
 {
-  if [[ $setnginx == 1 ]]; then
+  if [[ $setnginx == 1 || $setcdn == 1 ]]; then
     image="nginx"
     confpath="config/nginx.conf:/etc/nginx/nginx.conf"
   elif [[ $sethaproxy == 1 ]]; then
@@ -1546,6 +2002,55 @@ BuildNGINXConfig()
     echo -e "\n}" >> $nginxconf
   fi
 }
+BuildCDNConfig()
+{
+  if [[ $changeCDN == 1 ]]; then
+    srvpath=$basesrvpath/$CDNsel
+  else
+    mkdir -p $srvpath/config
+  fi
+  # Set path to temporary nginx config file
+  nginxconf="$srvpath/config/nginx.conf"
+  # Get CDN FQDN and IP
+  cdndomain=`grep -v "^#" $srvpath/OPFOR-DNS.txt | cut -d, -f1`
+  cdnip=`grep -v "^#" $srvpath/OPFOR-DNS.txt | cut -d, -f2`
+  # build initial file
+  echo -e "# NGINX configured by buildredteam.sh script" > $nginxconf
+  echo -e "# Server: $rediripsel" >> $nginxconf
+  echo -e "worker_processes 5;" >> $nginxconf
+  echo -e "pid /var/run/nginx.pid;" >> $nginxconf
+  echo -e "error_log /var/log/nginx.error_log info;" >> $nginxconf
+  echo -e "\nload_module /usr/lib/nginx/modules/ngx_stream_geoip_module.so;" >> $nginxconf
+  echo -e "\nevents {\n\tworker_connections 1024;\n}" >> $nginxconf
+  echo -e "http {" >> $nginxconf
+  echo -e "\tserver {" >> $nginxconf
+  echo -e "\t\tlisten $cdnip:443 ssl;" >> $nginxconf
+  echo -e "\t\tserver_name _;" >> $nginxconf
+  echo -e "\t\tssl_certificate /SSL/$cdndomain.crt;" >> $nginxconf
+  echo -e "\t\tssl_certificate_key /SSL/$cdndomain.key;" >> $nginxconf
+  echo -e "\n\t\tlocation / {" >> $nginxconf
+  echo -e "\t\t\treturn 444;" >> $nginxconf
+  echo -e "\t\t}" >> $nginxconf
+  echo -e "\t}" >> $nginxconf
+  for x in `cat $srvpath/$CDNmap`; do
+    sname=`echo $x | cut -d, -f2`
+    proxyip=`echo $x | cut -d, -f3`
+    if ! CheckFQDN $sname; then
+      continue
+    fi
+    if ! CheckIP $proxyip; then
+      continue
+    fi
+    echo -e "\tserver {" >> $nginxconf
+    echo -e "\t\tlisten $cdnip:443 ssl;" >> $nginxconf
+    echo -e "\t\tserver_name $sname;" >> $nginxconf
+    echo -e "\t\tlocation / {" >> $nginxconf
+    echo -e "\t\t\tproxy_pass https://$proxyip;" >> $nginxconf
+    echo -e "\t\t}" >> $nginxconf
+    echo -e "\t}" >> $nginxconf
+  done
+  echo "}" >> $nginxconf
+}
 
 BuildApacheConfig()
 {
@@ -1773,10 +2278,12 @@ ExecAndValidate()
   case $opt in
     1) echo -e "\n\t$ltblue Setting up a NGINX redirector using the above settings";;
     2) echo -e "\n\t$ltblue Setting up a HAProxy redirector using the above settings";;
-    3) echo -e "\n\t$ltblue Setting up a Cobalt Strike TeamServer using above settings";;
-    4) echo -e "\n\t$ltblue Setting up a Payload Host using the above settings";;
-    5) echo -e "\n\t$ltblue Setting up for Phish attacks using the above settings";;
-    7) echo -e "\n\t$ltblue Changing Redirectors Destination IP using the above settings";;
+    3) echo -e "\n\t$ltblue Setting up a CDN Domain Fronting redirector using the above settings";;
+    4) echo -e "\n\t$ltblue Setting up a Cobalt Strike TeamServer using above settings";;
+    5) echo -e "\n\t$ltblue Setting up a Payload Host using the above settings";;
+    6) echo -e "\n\t$ltblue Setting up for Phish attacks using the above settings";;
+    8) echo -e "\n\t$ltblue Changing Redirectors Destination IP using the above settings";;
+    9) echo -e "\n\t$ltblue Changing CDN hostname Mappings using the above settings";;
     *) echo -e "\n\t$red Not sure how you broke the script, but you did! opt=$opt";;
   esac
   # based on main menu selection, execute set scripts.
@@ -1790,7 +2297,8 @@ ExecAndValidate()
            3) DNSTagMenu; return;;
            4) DNSTagMenu; return;;
            5) DNSTagMenu; return;;
-           7) SetNewRedirIPMenu; return;;
+           6) DNSTagMenu; return;;
+           8) SetNewRedirIPMenu; return;;
          esac
          exit;;
     *) MenuBanner;;
@@ -1811,6 +2319,19 @@ ExecAndValidate()
     echo -e "$green Finished! $default"
     echo -ne "\t$yellow Starting $RDin Docker Container now... $defualt"
     docker-compose -f $basesrvpath/$RDsel/docker-compose.yml up -d &>/dev/null
+    echo -e "$green Finished! $default"
+    exit 0
+  fi
+  if [[ $changeCDN == 1 ]]; then
+    echo -ne "\t$yellow Modifying $CDNsel Configurations ... $default"
+	cp /tmp/$CDNmap $basesrvpath/$CDNsel/$CDNmap
+    BuildCDNConfig
+    echo -e "\t$green Finished! $default"
+    echo -ne "\t$yellow Stopping $CDNsel Docker Container now ... $default"
+    docker-compose -f $basesrvpath/$CDNsel/docker-compose.yml down &>/dev/null
+    echo -e "$green Finished! $default"
+    echo -ne "\t$yellow Starting $CDNsel Docker Container now... $defualt"
+    docker-compose -f $basesrvpath/$CDNsel/docker-compose.yml up -d &>/dev/null
     echo -e "$green Finished! $default"
     exit 0
   fi
@@ -1836,7 +2357,7 @@ ExecAndValidate()
     RegisterDNS
     echo -e "\t$green Finished! $default"
   fi
-  if [[ $https == 1 || $setpayload == 1 ]]; then
+  if [[ $https == 1 || $setpayload == 1 || $setcdn == 1 ]]; then
     echo -ne "\t$yellow Generating SSL certs Now.... $default"
     RandomSSLGen
     echo -e "\t$green Finished! $default"
@@ -1852,6 +2373,10 @@ ExecAndValidate()
   elif [[ $sethaproxy == 1 ]]; then
     echo -ne "\t$yellow Building haproxy.cfg for redirection Now.... $default"
     BuildHAProxyConfig
+    echo -e "$green Finished! $default"
+  elif [[ $setcdn == 1 ]]; then
+    echo -ne "\t$yellow Building CDN Nginx configuration Now.... $default"
+    BuildCDNConfig
     echo -e "$green Finished! $default"
   elif [[ $setpayload == 1 ]]; then
     echo -ne "\t$yellow Building Apache2 Now...."
