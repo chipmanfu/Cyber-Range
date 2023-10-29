@@ -54,9 +54,3 @@ else
   echo "Check the named.tmp file to see what the issue is"
   /usr/bin/named-checkconf $sdir/named.tmp 
 fi
-  ## Last step, restart bind on the recursive dns server to clear cache.
-ssh root@$rDNS service bind9 restart;
-ssh root@$rDNS 'service bind9 status | grep Active' >output
-echo "Bind9 service status for the Recursive DNS server"
-cat output
-rm output
