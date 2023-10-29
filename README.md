@@ -23,8 +23,8 @@ This Github project provides the CyberRange systems shown above in the green box
 See the wiki for how to install.  
 Once it's installed, there is a bookstack instance within the environment at www.redbook.com that contains detailed overviews and how to guides for using the environment.
 
-## TO DO List
+## New Features
 
-Update NRTS docker services to add logging and log management
-
-Look at modifying SSL cert creating dates and managing cert renewals
+Updated NRTS docker services to add logging and log management
+Modified SSL cert creation to simulate SSL cert aging.  New certs will be created with an offset creation date between 6-18 months old
+Added a Domain Fronting Content Delivery Network redirector to the NRTS server
