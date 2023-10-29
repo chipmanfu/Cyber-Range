@@ -25,6 +25,6 @@ Once it's installed, there is a bookstack instance within the environment at www
 
 ## New Features
 
-- Updated NRTS docker services to add logging and log management
+- Updated NRTS docker services to push logs into the docker logs.  You can see service logs by running docker logs <serviceName>
 - Modified SSL cert creation to simulate SSL cert aging.  New certs will be created with an offset creation date between 6-18 months old
 - Added a Domain Fronting Content Delivery Network redirector to the NRTS server
