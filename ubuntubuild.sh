@@ -564,6 +564,7 @@ case $opt in
   7) clear 
      echo -e "$green Setting up Traffic Web Host server $default"
      sleep 2
+     cp -r WebHost/* /root/
      apt update
      apt install -y apache2
      a2enmod ssl
@@ -667,5 +668,10 @@ case $opt in
      echo -e "$green Register Domains on RootDNS server. $default"
      sshpass -p $DNSPass scp -o StrictHostKeyChecking=no /tmp/websites.txt 198.41.0.4:/root/scripts/
      sshpass -p $DNSPass ssh -o StrictHostKeyChecking=no 198.41.0.4 '/root/scripts/add-TRAFFIC-DNS.sh /root/scripts/websites.txt'
+     clear
+     echo -e "$green set up SSL cert renewal automation Cron job $default"
+     crontab -l > cronjbs
+     echo "0 1 * * * /root/scripts/SSLcheck.sh" >> cronjbs
+     crontab cronjbs
      echo -e "$green Installation Complete! $default";;
 esac
