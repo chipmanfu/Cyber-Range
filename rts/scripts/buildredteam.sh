@@ -597,7 +597,6 @@ EditMapHostMenu()
     InputError
     EditMapHostMenu 
   fi
-  read holdup
 }
 
 EditMapIPMenu()
@@ -848,7 +847,7 @@ IPentry()
   echo -e "\n\t$ltblue Please set the IP you would like to use"
   echo -ne "\n\t$ltblue Here: $default "
   read IPin
-  if [[ $IPin == b ]] || [[ $IPin == B ]]; then ManualIPMenu; fi
+  if [[ $IPin == b ]] || [[ $IPin == B ]]; then ManualIPMenu; return; fi
   if [[ $IPin == q ]] || [[ $IPin == Q ]]; then UserQuit; fi
   if CheckIP "$IPin"; then
     found="no"
@@ -1010,7 +1009,7 @@ GetDNSInfo()
 {
   if [[ $gotdnsinfo != 1 ]]; then
     # Get DNS information for the primary DNS server
-    ssh $rootDNS 'grep zone /etc/bind/named.conf.*' | cut -d'"' -f2 | sed 's/.$//g' > $CurDNSInfo 
+    ssh $rootDNS 'grep ^zone /etc/bind/named.conf.*' | cut -d'"' -f2 | sed 's/.$//g' > $CurDNSInfo 
 #    ssh $rootDNS 'cd /etc/bind/OPFOR; grep -Eo "OPFOR[-0-9A-Za-z]{0,40}" * | sed "s/db.//" | sed "s/\:/ /"' > /tmp/taginfo
 #    awk 'FNR==NR{a[$1]=$2 FS $3;next} $1 in a {print $0, a[$1]}' /tmp/taginfo /tmp/IPinfo | sort -k 3 > $CurDNSInfo
 #    usertags=`cat $CurDNSInfo | cut -d " " -f 3 | sort -u`
@@ -1101,24 +1100,25 @@ ManualDNS()
     if CheckFQDN "$DNSin"; then
     ## Check if dns is already registered
       if grep -iq "$DNSin" $CurDNSInfo; then
-        echo -e "\t$red $DNSin is already registred, please try again. $default"; sleep 4
+        echo -e "\t$red $DNSin is already registred, please try again. $default"; sleep 2 
         ManualDNS
-      fi
+      else 
       #Remove any previously set FQDN for the IP selected.
-      sed -i "/$iplist/d" $TempDNSconf
-      #Add new FQDN
-      lowercaseDNS=`echo $DNSin | tr '[:upper:]' '[:lower:]'`
-      if (( $setcdn == 1 )); then cdndomain=$lowercaseDNS; fi
-      echo "$lowercaseDNS,$iplist" >> $TempDNSconf
-      cp $TempDNSconf $tmpsrvpath/$DNSlist
-      if (( $setcdn == 1 )); then
-        cdndomain=$lowercaseDNS;
-        CDNHostMenu
-      else
-        DNSTagMenu
+        sed -i "/$iplist/d" $TempDNSconf
+        #Add new FQDN
+        lowercaseDNS=`echo $DNSin | tr '[:upper:]' '[:lower:]'`
+        if (( $setcdn == 1 )); then cdndomain=$lowercaseDNS; fi
+        echo "$lowercaseDNS,$iplist" >> $TempDNSconf
+        cp $TempDNSconf $tmpsrvpath/$DNSlist
+        if (( $setcdn == 1 )); then
+          cdndomain=$lowercaseDNS;
+          CDNHostMenu
+        else
+          DNSTagMenu
+        fi
       fi
     else
-      echo "$DNSin is not a valid FQDN, please try again."; sleep 2
+      echo -e "\t$red $DNSin is not a valid FQDN, please try again. $default"; sleep 2
       ManualDNS
     fi
   else
@@ -1142,7 +1142,7 @@ ManualDNS()
     echo -ne "\n\t$ltblue Enter a Selection Here: $default"
     read answer
     case $answer in
-      b|B) if (( $setcdn == 1 )); then SetIPOptions; else AddDNSMenu; fi;;
+      b|B) if (( $setcdn == 1 )); then SetIPOptions; else AddDNSMenu; fi; return;;
       q|Q) UserQuit;;
       c|C) cp /dev/null $TempDNSconf; ManualDNS;;
       d|D) cp $TempDNSconf $tmpsrvpath/$DNSlist; DNSTagMenu;;
@@ -1184,7 +1184,7 @@ ManualHostMenu()
     echo -e "\t$ltblue that the CDN will recognize and forward to your team server"
     echo -ne "\t$ltblue Enter hostname here: $default"
     read hostnamein
-    if [[ $hostnamein == b ]] || [[ $hostnamein == B ]]; then CDNHostMenu; fi
+    if [[ $hostnamein == b ]] || [[ $hostnamein == B ]]; then CDNHostMenu; return; fi
     if [[ $hostnamein == q ]] || [[ $hostnamein == Q ]]; then UserQuit; fi
     if CheckFQDN "$hostnamein"; then
       lowercasehost=`echo $hostnamein | tr '[:upper:]' '[:lower:]'`
@@ -1193,7 +1193,7 @@ ManualHostMenu()
       sort -o $manhostlist{,}
       CDNRedirMenu 
     else
-      echo "$hostin is not a valid FQDN, please try again."; sleep 2
+      echo -e  "\t$red $hostnamein is not a valid FQDN, please try again. $default"; sleep 2
       ManualHostMenu
     fi
   else
@@ -1238,17 +1238,17 @@ CDNRedirMenu()
     echo -e "\n\t$ltblue Please enter the IP where CDN server hostname matches"
     echo -ne "\t$ltblue should go.  Enter C2 IP here: $default"
     read ipin
-    if [[ $ipin == b ]] || [[ $ipin == B ]]; then ManualHostMenu; fi
+    if [[ $ipin == b ]] || [[ $ipin == B ]]; then ManualHostMenu; return; fi
     if [[ $ipin == q ]] || [[ $ipin == Q ]]; then UserQuit; fi
     if CheckIP "$ipin"; then
       shost=`cat $manhostlist | cut -d, -f2`
       echo "1,$shost,$ipin" > $manhostlist
+      cp $manhostlist $tmpsrvpath/$CDNmap
+      DNSTagMenu
     else
-      echo "$ipin is not a valid IP Address, please try again."; sleep 2
+      echo -e "\t$red $ipin is not a valid IP Address, please try again. $default"; sleep 2
       CDNRedirMenu
     fi
-    cp $manhostlist $tmpsrvpath/$CDNmap
-    DNSTagMenu
   else
     echo -e "\n\t$ltblue Please add the IPs where CDN server Hostname matches should go."
     echo -e "\t$ltblue Select a hostname and then enter the IP, press D when complete"
@@ -1301,7 +1301,7 @@ HostIPEntry()
     echo -ne "\t$ltblue Here: $default"
   fi
   read hostipin
-  if [[ $hostipin == b ]] || [[ $hostipin == B ]]; then CDNRedirMenu; fi
+  if [[ $hostipin == b ]] || [[ $hostipin == B ]]; then CDNRedirMenu; return; fi
   if [[ $hostipin == q ]] || [[ $hostipin == Q ]]; then UserQuit; fi
   if CheckIP "$hostipin"; then
     if (( $sameIP == 1 )); then
@@ -1319,7 +1319,7 @@ HostIPEntry()
     fi
     CDNRedirMenu
   else
-    echo "$hostipin is not a valid IP address, please try again."; sleep 2
+    echo -e "\t$red $hostipin is not a valid IP address, please try again. $default"; sleep 2
     HostIPEntry
   fi
 }
@@ -1335,7 +1335,7 @@ HostEntry()
   echo -e "\n\t$ltblue Please set the Server hostname you want to use"
   echo -ne "\t$ltblue Here: $default"
   read hostin
-  if [[ $hostin == b ]] || [[ $hostin == B ]]; then ManualHostMenu; fi
+  if [[ $hostin == b ]] || [[ $hostin == B ]]; then ManualHostMenu; return; fi
   if [[ $hostin == q ]] || [[ $hostin == Q ]]; then UserQuit; fi
   if CheckFQDN "$hostin"; then
     lowercasehost=`echo $hostin | tr '[:upper:]' '[:lower:]'`
@@ -1343,7 +1343,7 @@ HostEntry()
     echo "$slotnum,$lowercasehost" >> $manhostlist
     ManualHostMenu
   else
-    echo "$hostin is not a valid FQDN, please try again."; sleep 2
+    echo -e "\t$red $hostin is not a valid FQDN, please try again. $default"; sleep 2
     ManualHostMenu
   fi
 }
@@ -1360,7 +1360,7 @@ DNSentry()
   echo -e "\n\t$ltblue Please set the Fully Qualified Domain Name you would like to use"
   echo -ne "\n\t$ltblue Here: $default "
   read DNSin
-  if [[ $DNSin == b ]] || [[ $DNSin == B ]]; then ManualDNS; fi
+  if [[ $DNSin == b ]] || [[ $DNSin == B ]]; then ManualDNS; return; fi
   if [[ $DNSin == q ]] || [[ $DNSin == Q ]]; then UserQuit; fi
   if CheckFQDN "$DNSin"; then
     if grep -iq "$DNSin" $CurDNSInfo; then
@@ -1468,7 +1468,7 @@ SelectServicesMenu()
   srvcount=`ls $basesrvpath | wc -l`
   if [[ $srvcount == 0 ]]; then
     echo -e "\n\t$ltblue No services built or running $default"
-    sleep 4
+    sleep 2 
     ContainerMenu
   else
     echo -e "\n\t\t$caction"  
@@ -2320,7 +2320,6 @@ ExecAndValidate()
     echo -ne "\t$yellow Starting $RDin Docker Container now... $defualt"
     docker-compose -f $basesrvpath/$RDsel/docker-compose.yml up -d &>/dev/null
     echo -e "$green Finished! $default"
-    exit 0
   fi
   if [[ $changeCDN == 1 ]]; then
     echo -ne "\t$yellow Modifying $CDNsel Configurations ... $default"
@@ -2333,7 +2332,6 @@ ExecAndValidate()
     echo -ne "\t$yellow Starting $CDNsel Docker Container now... $defualt"
     docker-compose -f $basesrvpath/$CDNsel/docker-compose.yml up -d &>/dev/null
     echo -e "$green Finished! $default"
-    exit 0
   fi
   # Create service path folder and move tmpsrvpath data to it.
   srvpath="$basesrvpath/$srvtag"
