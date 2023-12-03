@@ -28,3 +28,6 @@ Once it's installed, there is a bookstack instance within the environment at www
 - Updated NRTS docker services to push logs into the docker logs.  You can see service logs by running: docker logs "serviceName"
 - Modified SSL cert creation to simulate SSL cert aging.  New certs will be created with an offset creation date between 6-18 months old
 - Added a Domain Fronting Content Delivery Network redirector to the NRTS server
+
+## To Do 
+- Add a simulated "Let's Encrypt" Certificate authory to simulate various levels of trust.  For example, in a cyber exercise we could use "let's encrypt" for various attack payloads/C2's to create a higher risk indidcator for a scenario
