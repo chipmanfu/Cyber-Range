@@ -17,8 +17,8 @@ else
 fi
 
 ##### ENVIRONMENT SPECIFIC VARIABLES ####
-intname="ens35"
-CAserver="180.1.1.50"
+intname="ens192"
+CAserver="180.1.1.60"
 capass="toor"
 CAcrtpath="/root/ca/intermediate/certs"  # Needed to get CA cert for Apache SSL server
 CAcert="int.globalcert.com.crt.pem"
@@ -26,6 +26,8 @@ rootDNS="198.41.0.4"                     # This is the IP for the Root DNS serve
 rootpass="toor"
 recursDNS="8.8.8.8"                      # This is the IP for the Recursive DNS Server
 defaultdecoysite="redbook.com"
+CSTSproxy1="1080"
+CSTSproxy2="2090"
 
 #set initial variables for paths, files, and/or values
 ## filenames
@@ -1100,7 +1102,7 @@ ManualDNS()
     if CheckFQDN "$DNSin"; then
     ## Check if dns is already registered
       if grep -iq "$DNSin" $CurDNSInfo; then
-        echo -e "\t$red $DNSin is already registred, please try again. $default"; sleep 2 
+        echo -e "\t$red $DNSin is already registred, please try again. $default"; sleep 4
         ManualDNS
       else 
       #Remove any previously set FQDN for the IP selected.
@@ -1193,7 +1195,7 @@ ManualHostMenu()
       sort -o $manhostlist{,}
       CDNRedirMenu 
     else
-      echo -e  "\t$red $hostnamein is not a valid FQDN, please try again. $default"; sleep 2
+      echo -e  "$red $hostnamein is not a valid FQDN, please try again. $default"; sleep 2
       ManualHostMenu
     fi
   else
@@ -1468,7 +1470,7 @@ SelectServicesMenu()
   srvcount=`ls $basesrvpath | wc -l`
   if [[ $srvcount == 0 ]]; then
     echo -e "\n\t$ltblue No services built or running $default"
-    sleep 2 
+    sleep 4
     ContainerMenu
   else
     echo -e "\n\t\t$caction"  
@@ -1628,6 +1630,8 @@ BuildDockerContainer()
     if [[ $tsbridge == 1 ]]; then
       echo "    ports:" >> $composefile
       echo "      - $tsip:50050:50050/tcp" >> $composefile
+      echo "      - $tsip:$CSTSproxy1:$CSTSproxy1/tcp" >> $composefile
+      echo "      - $tsip:$CSTSproxy2:$CSTSproxy2/tcp" >> $composefile
       echo "      - $tsip:443:443/tcp" >> $composefile
       echo "      - $tsip:80:80/tcp" >> $composefile
       echo "      - $tsip:53:53/tcp" >> $composefile
@@ -2320,6 +2324,9 @@ ExecAndValidate()
     echo -ne "\t$yellow Starting $RDin Docker Container now... $defualt"
     docker-compose -f $basesrvpath/$RDsel/docker-compose.yml up -d &>/dev/null
     echo -e "$green Finished! $default"
+    iptables -F OUTPUT -t nat
+    iptables -F PREROUTING -t nat
+    exit 0
   fi
   if [[ $changeCDN == 1 ]]; then
     echo -ne "\t$yellow Modifying $CDNsel Configurations ... $default"
@@ -2332,6 +2339,9 @@ ExecAndValidate()
     echo -ne "\t$yellow Starting $CDNsel Docker Container now... $defualt"
     docker-compose -f $basesrvpath/$CDNsel/docker-compose.yml up -d &>/dev/null
     echo -e "$green Finished! $default"
+    iptables -F OUTPUT -t nat
+    iptables -F PREROUTING -t nat
+    exit 0
   fi
   # Create service path folder and move tmpsrvpath data to it.
   srvpath="$basesrvpath/$srvtag"
@@ -2433,7 +2443,12 @@ ExecAndValidate()
     echo -e "$green Finished! $default"
     echo -e "\n\t$ltblue Service information is located at $srvpath"
     echo -e "\t This folder contains Service info, IP file, and OPFOR-DNS file $default"
-  fi 
+  fi
+  if [[ $setcsts == 1 ]]; then
+    echo -e "$yellow Two socks proxy ports have been opened for use with your teamserver"
+    echo -e "\t Ports $CSTSproxy1  and $CSTSproxy2 $default"
+    echo "Sock Proxy Ports enabled are $CSTSproxy1 and $CSTSproxy2" >> $srvpath/ServiceInfo.txt
+  fi  
   # Remove iptable rules that create container isolation
   iptables -F OUTPUT -t nat
   iptables -F PREROUTING -t nat

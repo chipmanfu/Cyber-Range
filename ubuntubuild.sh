@@ -671,7 +671,7 @@ case $opt in
      clear
      echo -e "$green set up SSL cert renewal automation Cron job $default"
      crontab -l > cronjbs
-     echo "0 1 * * * /root/scripts/SSLcheck.sh" >> cronjbs
+     echo "0 2 * * * /root/scripts/SSLcheck.sh" >> cronjbs
      crontab cronjbs
      echo -e "$green Installation Complete! $default";;
 esac

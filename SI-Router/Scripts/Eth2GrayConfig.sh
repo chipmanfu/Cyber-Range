@@ -1487,8 +1487,6 @@ set interfaces ethernet eth2 address 222.216.188.1/22
 set interfaces ethernet eth2 address 223.165.24.1/22
 set interfaces ethernet eth2 address 223.165.28.1/22
 set interfaces ethernet eth2 address 223.223.164.129/25
-set interfaces ethernet eth2 duplex auto
-set interfaces ethernet eth2 speed auto 
 commit
 save
 exit
