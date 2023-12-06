@@ -334,6 +334,8 @@ case $opt in
      echo "include \"/etc/bind/named.conf.TRAFFIC\";" >> /etc/bind/named.conf
      echo "include \"/etc/bind/blackhole/rangism.zones\";" >> /etc/bind/named.conf
      echo "include \"/etc/bind/rndc.key\";" >> /etc/bind/named.conf
+     mv /usr/share/dns/root.hints /usr/share/dns/root.hints.org
+     echo ";We don't need root hints" > /usr/share/dns/root.hints
      service bind9 restart
      clear
      echo -e "$green Installation Complete! $default";;
