@@ -371,7 +371,7 @@ if [ ! -z $keyloggersel ]; then
   c=$flagstring
   flagstring="$c$addflagstring"
 fi
-/root/go/bin/SourcePoint $flagstring
+/root/SourcePoint/SourcePoint $flagstring
 
 echo -e "\n\t$green Hopefully it completed successfully, if not below is the command to re-run it\n"
 echo -e "$default /root/go/bin/SourcePoint $flagstring"
