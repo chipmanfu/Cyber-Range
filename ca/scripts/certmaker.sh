@@ -104,7 +104,7 @@ else
       exit 0
     fi
   else
-    C=NY
+    C=US
   fi
   if [[ $ST == "" ]]; then
     ST="New York"
@@ -119,32 +119,40 @@ else
     addalias="-name \"$TLD\" "
   fi
 fi
+rhr=$(shuf -i 10-18 -n 1)
+rmn=$(shuf -i 10-59 -n 1)
+rsc=$(shuf -i 10-59 -n 1)
+certime=$rhr$rmn$rsc
 months_ago=$(shuf -i 6-18 -n 1)
 randomday=$(shuf -i 10-28 -n 1)
 curyr=$(date +%Y)
 curmon=$(date +%m)
 tmpyr=$(date -d "$curyr-$curmon-01 $months_ago months ago" +%Y)
 tmpmon=$(date -d "$curyr-$curmon-01 $months_ago months ago" +%m)
-sdate=$tmpyr$tmpmon$randomday"000000Z"
+sdate=$tmpyr$tmpmon$randomday$certime"Z"
+edate=$(date -d "$curyr-$curmon-$randomday + 825 days" +%Y-%m-%d)
+cedate=$edate$certime"Z"
+enddate=$(date -d "$tmpyr-$tmpmon-$randomday + 825 days" +%Y-%m-%d)
 if [[ $quiet == "" ]]; then
   clear
   echo -e "$green Certificate will be created with the following settings:"
-  echo -e "$ltblue modified creation date: $tmpyr-$tmpmon-$randomday"
-  echo -e "$ltblue                 domain: $white $domain "
-  echo -e "$ltblue              C(county): $white $C"
-  echo -e "$ltblue              ST(State): $white $ST"
-  echo -e "$ltblue            L(Locality): $white $L"
-  echo -e "$ltblue        O(Organization): $white $O"
+  echo -e "$ltblue   modified creation date: $tmpyr-$tmpmon-$randomday"
+  echo -e "$ltblue modified expiration date: $enddate"
+  echo -e "$ltblue                   domain: $white $domain "
+  echo -e "$ltblue                C(county): $white $C"
+  echo -e "$ltblue                ST(State): $white $ST"
+  echo -e "$ltblue              L(Locality): $white $L"
+  echo -e "$ltblue          O(Organization): $white $O"
   if [[ $codesign == "yes" ]]; then
-    echo -e "$ltblue        CN(Common Name): $white $CN  $ltblue and using $white $O $ltblue for the code-signing cert"  
+    echo -e "$ltblue          CN(Common Name): $white $CN"  
   else
-    echo -e "$ltblue        CN(Common Name): $white $CN"  
+    echo -e "$ltblue          CN(Common Name): $white $CN"  
   fi 
-  if [[ $alias != "" ]]; then echo -e "$ltblue               A(alias): $white $alias"; fi
-  if [[ $DNS1 != "" ]]; then echo -e "$ltblue             DNS1(SAN1): $white $DNS1"; fi
-  if [[ $DNS2 != "" ]]; then echo -e "$ltblue             DNS2(SAN2): $white $DNS2"; fi
-  if [[ $DNS3 != "" ]]; then echo -e "$ltblue             DNS3(SAN3): $white $DNS3"; fi
-  if [[ $DNS4 != "" ]]; then echo -e "$ltblue             DNS4{SAN4): $white $DNS4"; fi
+  if [[ $alias != "" ]]; then echo -e "$ltblue                 A(alias): $white $alias"; fi
+  if [[ $DNS1 != "" ]]; then echo -e "$ltblue               DNS1(SAN1): $white $DNS1"; fi
+  if [[ $DNS2 != "" ]]; then echo -e "$ltblue               DNS2(SAN2): $white $DNS2"; fi
+  if [[ $DNS3 != "" ]]; then echo -e "$ltblue               DNS3(SAN3): $white $DNS3"; fi
+  if [[ $DNS4 != "" ]]; then echo -e "$ltblue               DNS4{SAN4): $white $DNS4"; fi
   echo -e "\n$ltblue Press$green <enter>$ltblue to continue, or any key to cancel $default"
   read ans
   if [[ $ans != "" ]]; then 
@@ -180,7 +188,7 @@ if [[ $DNS1 != "" ]]; then
   fi
 fi
 openssl req -out /root/ca/intermediate/csr/$domain.csr -newkey rsa:2048 -nodes -keyout /root/ca/intermediate/private/$domain.key -config /tmp/san.cnf
-openssl ca -config /root/ca/intermediate/openssl_intermediate.cnf -extensions server_cert -startdate $sdate -days 825 -notext -md sha512 -in /root/ca/intermediate/csr/$domain.csr -out /root/ca/intermediate/certs/$domain.crt -passin pass:password -batch
+openssl ca -config /root/ca/intermediate/openssl_intermediate.cnf -extensions server_cert -startdate $sdate -enddate $cedate -notext -md sha512 -in /root/ca/intermediate/csr/$domain.csr -out /root/ca/intermediate/certs/$domain.crt -passin pass:password -batch
 openssl pkcs12 -inkey /root/ca/intermediate/private/$domain.key -in /root/ca/intermediate/certs/$domain.crt -export -chain -CAfile /root/ca/intermediate/certs/chain.globalcert.com.crt.pem -out /root/ca/intermediate/certs/$domain.p12 -passout pass:password $addalias
 
 if [[ $codesign == "yes" ]]; then
@@ -207,7 +215,7 @@ extendedKeyUsage	= critical,codeSigning
 subjectKeyIdentifier	= hash
 EOM
   openssl req -out /root/ca/intermediate/csr/cs.$domain.csr -newkey rsa:2048 -nodes -keyout /root/ca/intermediate/private/cs.$domain.key -config /tmp/cs.cnf
-  openssl ca -config /root/ca/intermediate/openssl_intermediate.cnf -startdate $sdate -days 825 -notext -md sha512 -in /root/ca/intermediate/csr/cs.$domain.csr -out /root/ca/intermediate/certs/cs.$domain.crt -passin pass:password -batch
+  openssl ca -config /root/ca/intermediate/openssl_intermediate.cnf -startdate $sdate -enddate $cedate -notext -md sha512 -in /root/ca/intermediate/csr/cs.$domain.csr -out /root/ca/intermediate/certs/cs.$domain.crt -passin pass:password -batch
   openssl pkcs12 -inkey /root/ca/intermediate/private/cs.$domain.key -in /root/ca/intermediate/certs/cs.$domain.crt -export -chain -CAfile /root/ca/intermediate/certs/chain.globalcert.com.crt.pem -out /root/ca/intermediate/certs/cs.$domain.p12 -passout pass:password $addalias
 cp /root/ca/intermediate/certs/cs.$domain.p12 /var/www/html
 fi
