@@ -19,7 +19,7 @@ for x in `ls | grep .crt$`; do
   cmon=${month_map[$cmonth]}
   expiredate=$cyear$cmon$cday
   if [ $today -ge $expiredate ]; then
-    echo "$x $expiredate renewed on $today" >> $ssl_log
+    echo "$x expired on $expiredate renewed on $today" >> $ssl_log
     # remove old cert.
     rm /etc/ssl/certs/$x
     # pull domain name from the cert name
