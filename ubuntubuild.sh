@@ -577,8 +577,8 @@ case $opt in
      tar -zxvf trafficsites.tar.gz -C /var/www/html
      rm /var/www/html/index.html
      mv /var/www/html/websites.txt /tmp/
-
-     sshpass -p $CAPass ssh -o StrictHostKeyChecking=no root@180.1.1.50 'echo prepping CA connection'
+     ssh-keygen -b 1024 -t rsa -f /root/.ssh/id_rsa -q -N ""
+     sshpass -p $CAPass ssh-copy-id -o StrictHostKeyChecking=no root@180.1.1.50
      echo -e "auto lo\niface lo inet loopback\n\nauto $anic\niface $anic inet dhcp" > /etc/network/interfaces
      # Seperate website list into the following;
      #   domains (for registing with rootDNS and configuring virtual host on apache)
