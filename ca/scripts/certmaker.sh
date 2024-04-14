@@ -130,7 +130,7 @@ curmon=$(date +%m)
 tmpyr=$(date -d "$curyr-$curmon-01 $months_ago months ago" +%Y)
 tmpmon=$(date -d "$curyr-$curmon-01 $months_ago months ago" +%m)
 sdate=$tmpyr$tmpmon$randomday$certime"Z"
-edate=$(date -d "$curyr-$curmon-$randomday + 825 days" +%Y-%m-%d)
+edate=$(date -d "$curyr-$curmon-$randomday + 825 days" +%Y%m%d)
 cedate=$edate$certime"Z"
 enddate=$(date -d "$tmpyr-$tmpmon-$randomday + 825 days" +%Y-%m-%d)
 if [[ $quiet == "" ]]; then
