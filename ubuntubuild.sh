@@ -568,10 +568,11 @@ case $opt in
      sleep 2
      cp -r WebHost/* /root/
      apt update
-     apt install -y apache2
+     apt install -y apache2 python3-pip
+     pip install gdown
      a2enmod ssl
      echo -e "$green Downloading websites now, this will take a bit, approx 1,1GB download. $default"
-     wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1__Z5LllzuOA_HnVA6YsC47toHsmEo99d' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1__Z5LllzuOA_HnVA6YsC47toHsmEo99d" -O trafficsites.tar.gz && rm -rf /tmp/cookies.txt
+     gdown 1__Z5LllzuOA_HnVA6YsC47toHsmEo99d
      echo -e "$green Download complete, extracting sites. $default"
      sleep 2
      tar -zxvf trafficsites.tar.gz -C /var/www/html
