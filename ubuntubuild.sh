@@ -240,6 +240,13 @@ if [[ $needdocker == "y" ]]; then
   fi
   echo "export http_proxy=\"$Proxy\"" >> /etc/default/docker
   echo "export https_proxy=\"$Proxy\"" >> /etc/default/docker
+  echo "{" > /etc/docker/daemon.json
+  echo '	"log-driver": "json-file",' >> /etc/docker/daemon.json
+  echo '	"log-opts": {' >> /etc/docker/daemon.json
+  echo '		"max-size": "3m",' >> /etc/docker/daemon.json
+  echo '		"max-file": "3"' >> /etc/docker/daemon.json
+  echo '	}' >> /etc/docker/daemon.json
+  echo '}' >> /etc/docker/daemon.json
   systemctl daemon-reload
   systemctl restart docker
 fi
