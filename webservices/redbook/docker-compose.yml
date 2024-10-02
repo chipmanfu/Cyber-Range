@@ -6,7 +6,7 @@ volumes:
     driver: local
 services:
   bookstack:
-    image: lscr.io/linuxserver/bookstack:24.02.3
+    image: lscr.io/linuxserver/bookstack:23.10.4
     container_name: bookstack
     restart: unless-stopped
     environment:
