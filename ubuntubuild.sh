@@ -256,7 +256,7 @@ sed -i '/^NTP/d' /etc/systemd/timesyncd.conf
 sed -i '/^#NTP/d' /ect/systemd/timesyncd.conf
 sed -i '/^FallbackNTP/d' /etc/systemd/timesyncd.conf
 sed -i '/^#FallbackNTP/d' /ect/systemd/timesyncd.conf
-echo "NTP=pool.ntp.org" >> /etc/systemd/timesyncd.conf
+echo "NTP=172.30.0.2" >> /etc/systemd/timesyncd.conf
 echo "FallbackNTP=172.30.0.2" >> /etc/systemd/timesyncd.conf
 timedatectl set-ntp true
 clear
