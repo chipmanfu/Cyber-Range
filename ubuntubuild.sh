@@ -499,8 +499,8 @@ case $opt in
        echo -ne "$ltblue\t Please enter your Cobalt Strike License (c to cancel): $default"
        read csl
        if [[ $csl = @(c|C) ]]; then break; fi
-       export TOKEN=$(curl -s https://download.cobaltstrike.com/download -d "dlkey=${csl}" | grep 'href="/downloads/' | cut -d '/' -f3) 
-       if [ ! -z $TOKEN ]; then
+       DLLink=$(curl -s $CSURL/download -d "dlkey=${csl}" | grep -oP '(?<=href=\")/downloads[^\"]*')
+       if [ ! -z $DLLink ]; then
          InstallCS="y"
 	 break
        else 
@@ -511,10 +511,11 @@ case $opt in
     done
      if [ $InstallCS = "y" ]; then 
        echo -e "$green Cobalt Strike License accepted! $default"
+       FixLink=`echo $DLLink | sed 's/windows.zip/linux.tgz/g'`
        cd /root
-       wget https://download.cobaltstrike.com/downloads/${TOKEN}/latest46/cobaltstrike-dist.tgz
-       tar -zxf cobaltstrike-dist.tgz
-       rm cobaltstrike-dist.tgz
+       wget $CSURL$FixLink
+       tar -zxf cobaltstrike-dist-linux.tgz
+       rm cobaltstrike-dist-linux.tgz
        mv cobaltstrike cobaltstrike-local
        sed -i "s/^java/java -Dhttp.proxyHost=$ProxyIP -Dhttp.proxyPort=$ProxyPort -Dhttps.proxyHost=$ProxyIP -Dhttps.proxyPort=$ProxyPort/g" /root/cobaltstrike-local/update
        cd /root/cobaltstrike-local
