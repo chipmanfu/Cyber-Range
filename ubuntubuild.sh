@@ -1,6 +1,7 @@
 #!/bin/bash
 clear
-
+### Cobalt Strike variables
+CSURL="https://download.cobaltstrike.com"
 ### User customization Variable section
 ## Change this if you don't want to use the defaults.  This should set it up correctly, but not throughly tested.
 
