@@ -1592,7 +1592,7 @@ BuildDockerContainer()
     image="cobaltstrike"
     tsip=`grep -v "^#" $srvpath/$IPlist | cut -d '/' -f1`
     echo "#!/bin/bash" > $srvpath/startteamserver.sh
-    echo "cd /cobaltstrike" >> $srvpath/startteamserver.sh
+    echo "cd /cobaltstrike/server" >> $srvpath/startteamserver.sh
     echo "./teamserver $tsip $passwordsel /$tsprofile" >> $srvpath/startteamserver.sh
     chmod 755 $srvpath/startteamserver.sh
     confpath="cobaltstrike:/cobaltstrike"
