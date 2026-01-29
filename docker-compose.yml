@@ -20,6 +20,8 @@ volumes:
     driver: local
   cr-ssl-certs:
     driver: local
+  cr-ca-pki:
+    driver: local
 
 networks:
   services:
@@ -67,8 +69,10 @@ services:
       dockerfile: docker/ca/Dockerfile
     hostname: ca-server
     restart: unless-stopped
-    networks:
-      services:
+    network_mode: host
+    depends_on:
+      router:
+        condition: service_started
     environment:
       - CA_DOMAIN=${CA_DOMAIN:-globalcert.com}
       - CA_COUNTRY=${CA_COUNTRY:-US}
@@ -77,8 +81,10 @@ services:
       - CA_ORG=${CA_ORG:-Global Certificate Authority}
       - CA_PASS=${CA_PASS:-password}
       - BACKDATE_DAYS=${BACKDATE_DAYS:-365}
+      - CA_IP=${CA_IP:-180.1.1.50}
     volumes:
       - cr-ssl-certs:/output
+      - cr-ca-pki:/root/ca
     healthcheck:
       test: ["CMD", "bash", "-c", "test -f /root/ca/certs/root.crt.pem && test -f /root/ca/intermediate/certs/int.$${CA_DOMAIN:-globalcert.com}.crt.pem"]
       interval: 10s
@@ -98,8 +104,7 @@ services:
       - OUTPUT_DIR=/output
     volumes:
       - cr-ssl-certs:/output
-    volumes_from:
-      - ca-server
+      - cr-ca-pki:/root/ca
     depends_on:
       ca-server:
         condition: service_healthy
@@ -289,7 +294,7 @@ services:
     ports:
       - "${NTP_IP:-180.1.1.140}:123:123/udp"
     environment:
-      - NTP_SERVERS=${PROXY_IP:-172.30.0.2}
+      - NTP_SERVERS=${NTP_UPSTREAM:-127.127.1.0}
       - NOCLIENTLOG=true
 
   # ── Microsoft Sites (msftconnecttest.com) ───────────────────
@@ -309,6 +314,22 @@ services:
     depends_on:
       cert-bootstrap:
         condition: service_completed_successfully
+
+  # ── Traffic Web Host ────────────────────────────────────────
+  traffic-web:
+    build:
+      context: .
+      dockerfile: docker/traffic-web/Dockerfile
+    restart: unless-stopped
+    networks:
+      services:
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - ./data/networks:/data/networks:ro
+    environment:
+      - DATA_FILE=/data/networks/traffic-webhosts.txt
+      - SITES_DIR=/var/www/sites
 
   # ── NRTS (Red Team Server — on-demand) ───────────────────────
   nrts:
@@ -346,7 +367,9 @@ services:
     restart: unless-stopped
     network_mode: host
     volumes:
-      - ./docker/proxy/squid.conf:/etc/squid/squid.conf:ro
+      - ./docker/proxy/squid.conf:/etc/squid/squid.conf.template:ro
+      - ./docker/proxy/entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["bash", "/entrypoint.sh"]
     environment:
       - ADMIN_SUBNET=${ADMIN_SUBNET:-172.30.0.0/21}
       - SERVICES_SUBNET=${SERVICES_SUBNET:-180.1.1.0/24}

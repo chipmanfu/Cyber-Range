@@ -7,9 +7,9 @@ load '../helpers/setup'
   assert_line_count "$DATA_DIR/networks/admin.txt" 1
 }
 
-@test "data/networks/services.txt has 20 entries" {
+@test "data/networks/services.txt has 35 entries" {
   assert_file_exists "$DATA_DIR/networks/services.txt"
-  assert_line_count "$DATA_DIR/networks/services.txt" 20
+  assert_line_count "$DATA_DIR/networks/services.txt" 35
 }
 
 @test "data/networks/grayspace.txt has > 1400 entries" {

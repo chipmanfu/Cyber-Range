@@ -20,10 +20,16 @@ mkdir -p /var/www/html
 echo "[ca] CA server ready."
 
 # Start SSH for remote cert generation
+CA_IP="${CA_IP:-}"
 if command -v sshd &>/dev/null; then
   mkdir -p /run/sshd
-  echo "[ca] Starting sshd..."
-  exec /usr/sbin/sshd -D
+  if [[ -n "$CA_IP" ]]; then
+    echo "[ca] Starting sshd on ${CA_IP}..."
+    exec /usr/sbin/sshd -D -o "ListenAddress=${CA_IP}"
+  else
+    echo "[ca] Starting sshd..."
+    exec /usr/sbin/sshd -D
+  fi
 else
   echo "[ca] No sshd available. Sleeping..."
   exec sleep infinity

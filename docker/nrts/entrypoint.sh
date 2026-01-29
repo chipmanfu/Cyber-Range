@@ -45,6 +45,10 @@ if [[ -f "$BUILDSCRIPT" ]]; then
   # ── Errata #17: Replace docker-compose (V1) with docker compose (V2) ──
   sed -i 's/docker-compose /docker compose /g' "$BUILDSCRIPT"
 
+  # ── Errata #5: Patch iptables flush to use scoped NRTS_NAT chain ──
+  sed -i 's|iptables -F OUTPUT -t nat|iptables -t nat -F NRTS_NAT|g' "$BUILDSCRIPT"
+  sed -i 's|iptables -F PREROUTING -t nat|iptables -t nat -F NRTS_NAT|g' "$BUILDSCRIPT"
+
   echo "[nrts] Variable injection complete."
 else
   echo "[nrts] WARNING: buildredteam.sh not found at $BUILDSCRIPT" >&2
@@ -91,4 +95,8 @@ for chain in OUTPUT PREROUTING; do
 done
 
 echo "[nrts] NRTS ready."
-exec bash
+if [[ -f "$BUILDSCRIPT" ]]; then
+  exec "$BUILDSCRIPT"
+else
+  exec bash
+fi

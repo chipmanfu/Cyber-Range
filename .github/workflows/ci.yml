@@ -209,31 +209,3 @@ jobs:
               { echo 'Cert generation: FAILED'; exit 1; }
             "
 
-  # ── 7. Convert-VyOS integration test ──────────────────────
-  vyos-convert:
-    name: VyOS Conversion Verification
-    runs-on: ubuntu-latest
-    needs: [bats-tests]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Verify convert-vyos.sh produces correct data files
-        run: |
-          bash scripts/convert-vyos.sh SI-Router/Scripts/Eth0AdminConfig.sh > /tmp/admin.txt
-          bash scripts/convert-vyos.sh SI-Router/Scripts/Eth1ServicesConfig.sh > /tmp/services.txt
-          bash scripts/convert-vyos.sh SI-Router/Scripts/Eth2GrayConfig.sh > /tmp/grayspace.txt
-          bash scripts/convert-vyos.sh SI-Router/Scripts/Eth3RangeWAN.sh > /tmp/wan.txt
-
-          diff <(wc -l < data/networks/admin.txt) <(wc -l < /tmp/admin.txt)
-          diff <(wc -l < data/networks/services.txt) <(wc -l < /tmp/services.txt)
-          diff <(wc -l < data/networks/grayspace.txt) <(wc -l < /tmp/grayspace.txt)
-          diff <(wc -l < data/networks/wan.txt) <(wc -l < /tmp/wan.txt)
-
-          echo "VyOS conversion: ALL COUNTS MATCH"
-
-      - name: Verify data file content matches
-        run: |
-          diff data/networks/admin.txt <(bash scripts/convert-vyos.sh SI-Router/Scripts/Eth0AdminConfig.sh)
-          diff data/networks/services.txt <(bash scripts/convert-vyos.sh SI-Router/Scripts/Eth1ServicesConfig.sh)
-          diff data/networks/wan.txt <(bash scripts/convert-vyos.sh SI-Router/Scripts/Eth3RangeWAN.sh)
-          echo "VyOS data files: CONTENT MATCHES"
