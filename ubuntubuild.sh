@@ -491,8 +491,7 @@ case $opt in
      sed -i "s/^intname=.*/intname=\"$gnic\"/g" /root/scripts/buildredteam.sh
      sed -i "s/^CAserver=.*/CAserver=\"$caip\"/g" /root/scripts/buildredteam.sh
      sed -i "s/^CAcert=.*/CAcert=\"int.$CA.crt.pem\"/g" /root/scripts/buildredteam.sh
-     apt install -y openjdk-11-jdk
-     update-java-alternatives -s java-1.11.0-openjdk-amd64
+     apt install -y openjdk-17-jdk
      echo -e "$green Grabbing Cobalt Strike $default"
      InstallCS="n"
      while :
