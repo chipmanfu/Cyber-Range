@@ -617,20 +617,20 @@ case $opt in
      done
      # Build script for SI_router for all webhost IPs.
      echo -e "$green Configuring routes for the SI_router. $default"
-     echo "#!/bin/vbash" > /tmp/Eth1TrafficWebHosts.sh
-     echo "source /opt/vyatta/etc/functions/script-template" >> /tmp/Eth1TrafficWebHosts.sh
-     echo "configure" >> /tmp/Eth1TrafficWebHosts.sh
-     chmod 755 /tmp/Eth1TrafficWebHosts.sh
+     echo "#!/bin/vbash" > /tmp/Eth2TrafficWebHosts.sh
+     echo "source /opt/vyatta/etc/functions/script-template" >> /tmp/Eth2TrafficWebHosts.sh
+     echo "configure" >> /tmp/Eth2TrafficWebHosts.sh
+     chmod 755 /tmp/Eth2TrafficWebHosts.sh
      for subnet in $routes
      do
-       echo "set interfaces ethernet eth1 address $subnet.1/24" >> /tmp/Eth1TrafficWebHosts.sh
+       echo "set interfaces ethernet eth2 address $subnet.1/24" >> /tmp/Eth2TrafficWebHosts.sh
      done
-     echo "commit" >> /tmp/Eth1TrafficWebHosts.sh
-     echo "save" >> /tmp/Eth1TrafficWebHosts.sh
-     echo "exit" >> /tmp/Eth1TrafficWebHosts.sh
+     echo "commit" >> /tmp/Eth2TrafficWebHosts.sh
+     echo "save" >> /tmp/Eth2TrafficWebHosts.sh
+     echo "exit" >> /tmp/Eth2TrafficWebHosts.sh
      # Copy script to SI_Router and run it
-     sshpass -p $SIPass scp -o StrictHostKeyChecking=no /tmp/Eth1TrafficWebHosts.sh vyos@172.30.7.254:/home/vyos/Scripts/
-     sshpass -p $SIPass ssh -o StrictHostKeyChecking=no vyos@172.30.7.254 '/home/vyos/Scripts/Eth1TrafficWebHosts.sh'
+     sshpass -p $SIPass scp -o StrictHostKeyChecking=no /tmp/Eth2TrafficWebHosts.sh vyos@172.30.7.254:/home/vyos/Scripts/
+     sshpass -p $SIPass ssh -o StrictHostKeyChecking=no vyos@172.30.7.254 '/home/vyos/Scripts/Eth2TrafficWebHosts.sh'
      echo -e "$green Configure Apache Web server and Generate SSL Certs via the CA-Server. $default"     
      # Configure Apache webserver
      httpconf="TG_HTTP.conf"
