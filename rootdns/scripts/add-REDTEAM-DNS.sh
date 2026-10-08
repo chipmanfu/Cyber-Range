@@ -1,172 +1,176 @@
 #!/bin/bash
-# Written by Chip McElvain 
-# Script to add DNS records.
-# needs file to read in
-# Format for the file should be domain,IP with a tag line at the end that
-# looks like  "# Tag:mytag" where mytag is whatever you want to tag it with. 
+# Written by Chip McElvain
+# Script to add DNS records with reverse DNS support
+# Format: domain,IP with optional tag line "# Tag:mytag"
 
-# Prevent a PID to lock the script to prevent simulaneous exectution.
 PIDFILE="/root/scripts/addDNS.pid"
 
-# Check if the script is already running before doing things.
 if [[ -s $PIDFILE ]]; then
   echo "Script is currently running, try again later"
   exit 0
 else
   echo $BASHPID > $PIDFILE
-fi 
+fi
 
-# Check for argument.
-if [ -z "$1" ]
-then
+if [ -z "$1" ]; then
   echo "This script requires a file to be passed as an argument"
-  echo "The file formate is domain,IP and the last line should be a tag line"
-  echo "The tag line format is # Tag:mytag   - where mytag is whatever you want to use"
+  echo "The file format is domain,IP and the last line should be a tag line"
+  echo "The tag line format is # Tag:mytag"
   rm $PIDFILE
   exit 1
 else
   dnsconf=$1
 fi
 
-#clear Terminal for output
 clear
 
-# Check to see if dnsconf file exists and isn't empty
-if [ ! -f $dnsconf ] || [ ! -s $dnsconf ]
-then
+if [ ! -f $dnsconf ] || [ ! -s $dnsconf ]; then
   echo "The file $dnsconf is empty or doesn't exist."
   echo "Script is exiting"
-   rm $PIDFILE
-   exit 1
+  rm $PIDFILE
+  exit 1
 fi
 
-# Set variables
 bdir="/etc/bind"
 odir="/etc/bind/OPFOR"
+rdir="/etc/bind/REVERSE"
 sdir="/root/scripts"
+rconf="$bdir/named.conf.REVERSE"
 
-# a DNS file exists and isn't empty, so we are going to process it.
 echo "DNS file processing."
 
-# Get user tag
-userin=`grep "# Tag:" $dnsconf | cut -d: -f2`
+userin=$(grep "# Tag:" $dnsconf | cut -d: -f2)
 
-# create comment tags for DNS entries based what was passed in the tag line
-# otherwise use a generic OPFOR tag.  This is used to remove DNS entries later.
-# NOTE: for a zone file comments are denoted by a ";"
-# NOTE: for zone references made in named.conf.OPFOR, comments are denoted by "//".
-
-if [ -z $userin ]
-then  #use generic Tags
+if [ -z $userin ]; then
   zonetag=";OPFOR-NoTag"
   namedstart="//OPFORSTART-NoTag"
   namedend="//OPFOREND-NoTag"
+  ptrstart=";PTR-OPFOR-NoTag"
+  ptrend=";PTR-END"
 else
   zonetag=";OPFOR-$userin"
   namedstart="//OPFORSTART-$userin"
   namedend="//OPFOREND-$userin"
+  ptrstart=";PTR-OPFOR-$userin"
+  ptrend=";PTR-END"
 fi
 
-# Create a zones.tmp file for storing zone references that we will add
-# to the named.conf at the end.
 echo $namedstart > $sdir/zones.tmp
 
-# Loop through the DNS files records in $dnsfile.
-while read i; 
-do
-  # Ignore comments and empty lines
-  if [[ $i == \#* ]] || [[ $i == "" ]]
-  then continue
+while read i; do
+  if [[ $i == \#* ]] || [[ $i == "" ]]; then
+    continue
   fi
 
-  # Seperate domain and IPs
-  domain=`echo $i | cut -d, -f 1`
-  IP=`echo $i | cut -d, -f 2`
+  domain=$(echo $i | cut -d, -f 1)
+  IP=$(echo $i | cut -d, -f 2)
 
-  # Create zone file or overwrite any existing zone files with the same domain
-  # First check to see if a zone file for the domain exists.
-  # using a wild card for directory so it will check OPFOR,SimSpace,and Range directorys.
-  if [ -f /etc/bind/*/db.$domain ]
-  then
-    # If we get a hit, well see if it's already an OPFOR doamin, and if so we'll update it.
-	if grep -q OPFOR $odir/db.$domain; then
-	  echo "Updating db.$domain"
-	else 
-	  echo "Domain $domain is already registered. Skipping"
-	  continue
-	fi
+  if [ -f /etc/bind/*/db.$domain ]; then
+    if grep -q OPFOR $odir/db.$domain; then
+      echo "Updating db.$domain"
+    else
+      echo "Domain $domain is already registered. Skipping"
+      continue
+    fi
   else
     echo "Adding db.$domain"
   fi
 
-  # Create the zone file
   echo "$zonetag" > $odir/db.$domain
-  echo -e "\$TTL\t86400" >> $odir/db.$domain
-  echo -e "@\tIN\tSOA\t@\tns1.$domain. 42 3H 15M 1W 1D" >> $odir/db.$domain
-  echo -e "@\tIN\tNS\t\tns1.$domain." >> $odir/db.$domain
-  echo -e "@\tIN\tMX\t10\t$domain." >> $odir/db.$domain
-  echo -e "@\tIN\tA\t\t$IP" >> $odir/db.$domain
-  echo -e "mail\tIN\tA\t\t$IP" >> $odir/db.$domain
-  echo -e "www\tIN\tA\t\t$IP" >> $odir/db.$domain
-  echo -e "ns1\tIN\tA\t\t198.41.0.4" >> $odir/db.$domain
+  echo -e '$TTL\t86400' >> $odir/db.$domain
+  echo -e '@\tIN\tSOA\t@\tns1.'"$domain"'. 42 3H 15M 1W 1D' >> $odir/db.$domain
+  echo -e '@\tIN\tNS\t\tns1.'"$domain"'.' >> $odir/db.$domain
+  echo -e '@\tIN\tMX\t10\t'"$domain"'.' >> $odir/db.$domain
+  echo -e '@\tIN\tA\t\t'"$IP" >> $odir/db.$domain
+  echo -e 'mail\tIN\tA\t\t'"$IP" >> $odir/db.$domain
+  echo -e 'www\tIN\tA\t\t'"$IP" >> $odir/db.$domain
+  echo -e 'ns1\tIN\tA\t\t198.41.0.4' >> $odir/db.$domain
 
-  # checks if domain is already in named.conf
-  if grep -Fq "zone \"$domain.\"" $bdir/named.conf.OPFOR
-  then
-    continue # We don't need to add the reference to the zone file since it already exists.
+  if grep -Fq "zone \"$domain.\"" $bdir/named.conf.OPFOR; then
+    :
   else
-    # create zone file reference in named.conf.OPFOR
-    echo "zone \"$domain.\" IN {"  >> $sdir/zones.tmp
+    echo "zone \"$domain.\" IN {" >> $sdir/zones.tmp
     echo "    type master;" >> $sdir/zones.tmp
     echo "    file \"OPFOR/db.$domain\";" >> $sdir/zones.tmp
     echo "    allow-query { any; };" >> $sdir/zones.tmp
     echo "    allow-update { none; };" >> $sdir/zones.tmp
     echo "};" >> $sdir/zones.tmp
   fi
-done<$dnsconf
 
-# Checks to see if there were any zone files references that need to be added
-# to named.conf
-if [[ $(wc -l <$sdir/zones.tmp) -eq 1 ]]
-then
-  echo "No new zone files to add to named.conf"
-  rm $sdir/zones.tmp
-else
-  # Close the zone reference file with a tag so the section can be identified.
-  # This is done on the temp file which is then tested for config errors 
-  # before putting in production and restarting bind.
+  octets=(${IP//./ })
+  third_octet=${octets[2]}
+  second_octet=${octets[1]}
+  first_octet=${octets[0]}
+  last_octet=${octets[3]}
+  network="${third_octet}.${second_octet}.${first_octet}"
+  zone_name="${network}.in-addr.arpa"
+  rev_zone_file="$rdir/db.$zone_name"
+
+  mkdir -p "$rdir"
+
+  if [ -f "$rev_zone_file" ]; then
+    if grep -q "PTR.*$domain" "$rev_zone_file"; then
+      echo "PTR record for $domain already exists in $zone_name. Skipping reverse."
+    else
+      echo "Adding PTR record to existing zone $zone_name"
+      echo "$ptrstart-$domain" >> "$rev_zone_file"
+      echo -e "${last_octet}\tIN\tPTR\t${domain}." >> "$rev_zone_file"
+      echo "$ptrend" >> "$rev_zone_file"
+    fi
+  else
+    echo "Creating new reverse zone $zone_name"
+    echo ";REVERSE-Zone" > "$rev_zone_file"
+    echo -e '$TTL\t86400' >> "$rev_zone_file"
+    echo -e "@\tIN\tSOA\t@\tns1.${zone_name}.\t42 3H 15M 1W 1D" >> "$rev_zone_file"
+    echo -e "@\tIN\tNS\t\tns1.${zone_name}." >> "$rev_zone_file"
+    echo -e 'ns1\tIN\tA\t\t198.41.0.4' >> "$rev_zone_file"
+    echo "$ptrstart-$domain" >> "$rev_zone_file"
+    echo -e "${last_octet}\tIN\tPTR\t${domain}." >> "$rev_zone_file"
+    echo "$ptrend" >> "$rev_zone_file"
+
+    if ! grep -Fq "zone \"$zone_name.\"" "$rconf" 2>/dev/null; then
+      echo "zone \"$zone_name.\" IN {" >> "$sdir/zones.tmp"
+      echo "    type master;" >> "$sdir/zones.tmp"
+      echo "    file \"REVERSE/db.$zone_name\";" >> "$sdir/zones.tmp"
+      echo "    allow-query { any; };" >> "$sdir/zones.tmp"
+      echo "    allow-update { none; };" >> "$sdir/zones.tmp"
+      echo "};" >> "$sdir/zones.tmp"
+    fi
+  fi
+done < $dnsconf
+
+if [[ $(wc -l < $sdir/zones.tmp) -gt 1 ]]; then
   echo $namedend >> $sdir/zones.tmp
   cat $sdir/zones.tmp $bdir/named.conf.OPFOR > $sdir/named.tmp
 
-  # Checks the modified named.conf configuration
-  if /usr/bin/named-checkconf $sdir/named.tmp > /dev/null 2>&1
-  then
+  if /usr/bin/named-checkconf $sdir/named.tmp > /dev/null 2>&1; then
     echo "DNS Zone changes to named.conf checked out good"
     rm $sdir/zones.tmp
     mv $sdir/named.tmp $bdir/named.conf.OPFOR
   else
-    echo "DNZ Zone Changes created errors, see below"
+    echo "DNS Zone Changes created errors, see below"
     /usr/bin/named-checkconf $sdir/named.tmp
     rm $sdir/named.tmp
     rm $sdir/zones.tmp
     rm $PIDFILE
     exit 1
   fi
+else
+  echo "No new forward zone files to add to named.conf"
+  rm $sdir/zones.tmp
 fi
 
-# If the script is still running, config changes are good so lets restart
-# bind9 on the root Server
 echo "Restarting bind9 service"
 service bind9 restart
-echo "Bind9 Status is below"
-bindstatus=`service bind9 status | grep Active`
-if `service bind9 status | grep -q "running"`
-then
-  echo "bind9 is good, have a good day!"
+
+if service bind9 status | grep -q "running"; then
+  echo "bind9 is running successfully"
 else
-  echo "Bind9 has a problem, WHAT DID YOU DO!!"
+  echo "bind9 has a problem"
   /usr/bin/named-checkconf $bdir/named.conf.OPFOR
   rm $PIDFILE
   exit 1
 fi
+
 rm $PIDFILE
+echo "DNS setup complete"
