@@ -340,6 +340,7 @@ case $opt in
      echo "include \"/etc/bind/named.conf.OPFOR\";" >> /etc/bind/named.conf
      echo "include \"/etc/bind/named.conf.RANGE\";" >> /etc/bind/named.conf
      echo "include \"/etc/bind/named.conf.TRAFFIC\";" >> /etc/bind/named.conf
+	 echo "include \"/etc/bind/named.conf.REVERSE\";" >> /etc/bind/named.conf
      echo "include \"/etc/bind/blackhole/rangism.zones\";" >> /etc/bind/named.conf
      echo "include \"/etc/bind/rndc.key\";" >> /etc/bind/named.conf
      mv /usr/share/dns/root.hints /usr/share/dns/root.hints.org
