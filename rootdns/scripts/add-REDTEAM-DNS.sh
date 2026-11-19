@@ -123,7 +123,7 @@ while read i; do
     echo -e '$TTL\t86400' >> "$rev_zone_file"
     echo -e "@\tIN\tSOA\t@\tns1.${zone_name}.\t42 3H 15M 1W 1D" >> "$rev_zone_file"
     echo -e "@\tIN\tNS\t\tns1.${zone_name}." >> "$rev_zone_file"
-    echo -e 'ns1\tIN\tA\t\t198.41.0.4' >> "$rev_zone_file"
+    echo -e 'ns1\tIN\tA\t\t4.4.4.4' >> "$rev_zone_file"
     echo "$ptrstart-$domain" >> "$rev_zone_file"
     echo -e "${last_octet}\tIN\tPTR\t${domain}." >> "$rev_zone_file"
     echo "$ptrend" >> "$rev_zone_file"
